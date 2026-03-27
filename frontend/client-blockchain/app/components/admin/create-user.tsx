@@ -1,0 +1,136 @@
+"use client";
+
+import React, { useState } from "react";
+
+interface UserFormData {
+  username: string;
+  name: string;
+  role: string;
+}
+
+const CreateUserForm: React.FC = () => {
+  const [formData, setFormData] = useState<UserFormData>({
+    username: "",
+    name: "",
+    role: "User",
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreateAccount = () => {
+    if (!formData.username || !formData.name) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+    console.log("Dữ liệu gửi đi:", formData);
+    alert("Tạo tài khoản thành công!");
+  };
+
+  return (
+    <main className="relative mx-auto flex min-h-screen w-full items-center justify-center bg-[#0f172a] overflow-hidden p-4">
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/20 blur-[120px]" />
+
+      <section className="relative z-10 flex w-full max-w-[30rem] flex-col space-y-10 rounded-2xl bg-white/5 p-10 shadow-2xl backdrop-blur-xl border border-white/10">
+        <div className="text-center">
+          <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+            Create Account
+          </h1>
+        </div>
+
+        <div className="flex flex-col space-y-6">
+          <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={formData.username}
+              onChange={handleChange}
+              className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
+            />
+            {/* Thanh bar chạy dưới chân khi focus */}
+            <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
+          </div>
+
+          {/* Input Group: Full Name */}
+          <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
+            <input
+              type="text"
+              name="name"
+              placeholder="Full Name"
+              value={formData.name}
+              onChange={handleChange}
+              className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
+            />
+            <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
+          </div>
+
+          {/* Role Select với Custom Arrow */}
+          {/* Role Select với Custom Arrow & Glow Effect */}
+          <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
+            {/* Label nhỏ phía trên để tăng độ chuyên nghiệp */}
+            <label className="block text-[10px] uppercase tracking-[0.2em] text-indigo-400/60">
+              Select Role
+            </label>
+
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full appearance-none bg-transparent py-2 pb-3 outline-none cursor-pointer text-gray-300 focus:text-white transition-colors duration-300"
+            >
+              <option value="User" className="bg-[#1e293b] text-white">
+                User
+              </option>
+              <option value="Admin" className="bg-[#1e293b] text-white">
+                Admin
+              </option>
+            </select>
+
+            {/* Custom Arrow với hiệu ứng xoay khi focus */}
+            <div className="pointer-events-none absolute right-0 bottom-2 flex items-center text-gray-500 transition-transform duration-300 group-focus-within:rotate-180 group-focus-within:text-indigo-400">
+              <svg
+                className="h-5 w-5 fill-none stroke-current stroke-2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+
+            {/* Thanh bar chạy dưới chân đồng bộ với Username/Fullname */}
+            <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
+          </div>
+
+          {/* Submit Button với Glow Effect */}
+          <button
+            type="button"
+            onClick={handleCreateAccount}
+            className="relative mt-6 group overflow-hidden rounded-lg bg-indigo-600 py-3 font-bold transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.6)] active:scale-95"
+          >
+            <span className="relative z-10 uppercase tracking-[0.2em]">
+              Create Account
+            </span>
+            {/* Hiệu ứng tia sáng quét ngang khi hover */}
+            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
+          </button>
+        </div>
+      </section>
+
+      {/* Tailwind Keyframes (Thêm vào file CSS hoặc dùng style tag) */}
+      <style jsx>{`
+        @keyframes shimmer {
+          100% {
+            transform: translateX(100%);
+          }
+        }
+      `}</style>
+    </main>
+  );
+};
+
+export default CreateUserForm;
