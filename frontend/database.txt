@@ -1,0 +1,32 @@
+tai khoan cong ty cung cap
+User{
+	username<ma nhan vien> string
+	password hash
+	role {read write}
+	wallet_address ?: string
+    }
+Lưu dữ liệu thô nhập từ hóa đơn hàng tháng
+resource_usage{
+	user_id
+	ELECTRIC: {amount_ELECTRIC: float, img: string } // frontend gui
+	WATER:{ amount_WATER: float, img: string  } // frontend gui
+	carbon: float
+	dataHash: String (Mã SHA-256 của toàn bộ nội dung báo cáo này)
+	address_transtraction: String (Mã giao dịch trên Blockchain sau khi đẩy thành công)
+	date: datetime
+}
+
+	
+
+	
+
+	
+	
+		
+	
+	
+
+
+	
+
+	
