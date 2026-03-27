@@ -12,6 +12,7 @@ resource_usage{
 	ELECTRIC: {amount_ELECTRIC: float, img: string } // frontend gui
 	WATER:{ amount_WATER: float, img: string  } // frontend gui
 	carbon: float
+	invoice: string // image in clound url 
 	dataHash: String (Mã SHA-256 của toàn bộ nội dung báo cáo này)
 	address_transtraction: String (Mã giao dịch trên Blockchain sau khi đẩy thành công)
 	date: datetime
