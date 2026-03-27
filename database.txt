@@ -8,7 +8,7 @@ User{
     }
 Lưu dữ liệu thô nhập từ hóa đơn hàng tháng
 resource_usage{
-	user_id
+	username<ma nhan vien> string
 	ELECTRIC: {amount_ELECTRIC: float, img: string } // frontend gui
 	WATER:{ amount_WATER: float, img: string  } // frontend gui
 	carbon: float
