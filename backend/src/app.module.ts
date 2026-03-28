@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ResourceUsageModule } from './resource_usage/resource_usage.module';
+import { BlockchainModule } from './blockchain/blockchain.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ResourceUsageModule } from './resource_usage/resource_usage.module';
     UsersModule,
     AuthModule,
     ResourceUsageModule,
+    BlockchainModule,
   ],
   controllers: [AppController],
   providers: [AppService],
