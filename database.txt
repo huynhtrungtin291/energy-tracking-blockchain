@@ -9,10 +9,9 @@ User{
 Lưu dữ liệu thô nhập từ hóa đơn hàng tháng
 resource_usage{
 	username<ma nhan vien> string
-	ELECTRIC: {amount_ELECTRIC: float, img: string } // frontend gui
-	WATER:{ amount_WATER: float, img: string  } // frontend gui
+	electric: {amount_electric: float, invoice_electric: string } // frontend gui
+	water:{ amount_water: float, invoice_water: string  } // frontend gui
 	carbon: float
-	invoice: string // image in clound url 
 	dataHash: String (Mã SHA-256 của toàn bộ nội dung báo cáo này)
 	address_transtraction: String (Mã giao dịch trên Blockchain sau khi đẩy thành công)
 	date: datetime
