@@ -5,27 +5,33 @@ import * as crypto from 'crypto';
 import { ResourceUsage } from './schema/resource_usage.schema';
 import { CreateResourceUsageDto } from './dto/create-resource_usage.dto';
 import { MonthYearRangeQueryDto, ResponseResourceUsageDto } from './dto/reponse-resource_usage.dto';
+import { BlockchainService } from '../blockchain/blockchain.service';
 
 @Injectable()
 export class ResourceUsageService {
-  constructor(@InjectModel(ResourceUsage.name) private ResourceUsageDocument: Model<ResourceUsage>) {}
+  constructor(
+    @InjectModel(ResourceUsage.name) private ResourceUsageDocument: Model<ResourceUsage>,
+    private blockchainService: BlockchainService,
+  ) {}
 
   async create(createResourceUsageDto: CreateResourceUsageDto) {
     const createdResourceUsage = new this.ResourceUsageDocument(createResourceUsageDto);
     const co2Emissions = this.calcCO2(createResourceUsageDto.electric.amount_electric, createResourceUsageDto.water.amount_water);
     createdResourceUsage.carbon = co2Emissions;
-    console.log('Data', createdResourceUsage);
     const data = {
       username: createdResourceUsage.username,
+      name: "Huỳnh Trung Tín",
       electric: createdResourceUsage.electric,
       water: createdResourceUsage.water,
       carbon: createdResourceUsage.carbon,
       date: createdResourceUsage.date,
     };
+    console.log('Data to hash', JSON.stringify(data));
     const dataToHash = this.sha256(data);
     createdResourceUsage.dataHash = dataToHash;
-    const fakeTransaction = '0xakfncklasnklasndcaklsndka';
-    createdResourceUsage.address_transaction = fakeTransaction;
+    // Gửi hash lên Blockchain
+    const addressTransaction = await this.blockchainService.pushHashToChain(dataToHash);
+    createdResourceUsage.address_transaction = addressTransaction;
 
     return await createdResourceUsage.save();
   }
