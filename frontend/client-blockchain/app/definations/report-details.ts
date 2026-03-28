@@ -13,19 +13,19 @@ interface ServiceDetail {
 export interface IReport {
   username: string;
   name: string;
-  
+
   // Dữ liệu Điện
   ELECTRIC: {
-    amount_ELECTRIC: number;
-    img: string;
+    amount_electric: number;
+    invoice_electric: string;
   };
-  
+
   // Dữ liệu Nước
   WATER: {
-    amount_WATER: number;
-    img: string;
+    amount_water: number;
+    invoice_water: string;
   };
-  
+
   carbon: number;           // Lượng khí thải tính toán được
   invoice: string;          // Mã số hóa đơn
   dataHash: string;         // Mã SHA-256 để kiểm tra toàn vẹn dữ liệu
