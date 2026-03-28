@@ -1,10 +1,17 @@
-import { IsOptional } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { UserRole } from 'src/constants/permissions.enum';
 
 export class CreateUserDto {
+  @IsString()
   username: string;
+
+  @IsString()
   name: string;
+
+  @IsString()
   password: string;
+
+  @IsString()
   role: UserRole;
 
   @IsOptional()

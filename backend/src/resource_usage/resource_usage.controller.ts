@@ -1,34 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { ResourceUsageService } from './resource_usage.service';
 import { CreateResourceUsageDto } from './dto/create-resource_usage.dto';
-import { UpdateResourceUsageDto } from './dto/update-resource_usage.dto';
-
+import { Roles } from 'src/auth/decorators/role.decorator';
+import { MonthYearRangeQueryDto } from './dto/reponse-resource_usage.dto';
 @Controller('resource-usage')
 export class ResourceUsageController {
   constructor(private readonly resourceUsageService: ResourceUsageService) {}
 
+  @Roles()
   @Post()
   create(@Body() createResourceUsageDto: CreateResourceUsageDto) {
     return this.resourceUsageService.create(createResourceUsageDto);
   }
 
-  @Get()
-  findAll() {
-    return this.resourceUsageService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.resourceUsageService.findOne(id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateResourceUsageDto: UpdateResourceUsageDto) {
-    return this.resourceUsageService.update(id, updateResourceUsageDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.resourceUsageService.remove(id);
+  @Roles()
+  @Post('yearly-usage')
+  getYearlyUsage(@Body() dataTime?: MonthYearRangeQueryDto) {
+    return this.resourceUsageService.getYearlyUsage(dataTime || {});
   }
 }

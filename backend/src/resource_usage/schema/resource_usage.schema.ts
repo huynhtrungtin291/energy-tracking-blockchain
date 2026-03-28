@@ -41,8 +41,8 @@ export class ResourceUsage {
   @Prop({ required: true })
   address_transaction: string; // Mã giao dịch trên Blockchain sau khi đẩy thành công
 
-  @Prop({ required: true, default: Date.now })
-  date: Date; // datetime
+  @Prop({ required: true })
+  date: Date; // Ngày tháng của báo cáo (ví dụ: ngày 15/08/2023)
 
   createdAt?: Date;
   updatedAt?: Date;
