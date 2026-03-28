@@ -1,27 +1,57 @@
-import * as XLSX from 'xlsx';
-import { IReport } from '../definations/report-details';
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
+import { IReport } from "../definations/report-details";
 
-export const exportToExcel = (reports: IReport[], fileName: string) => {
-  // 1. Chuyển đổi dữ liệu lồng nhau thành dạng phẳng (Flatten)
-  const flattenData = reports.map(item => ({
-    "Nhân viên": item.username,
-    "Họ và tên": item.name,
-    "Số điện (kWh)": item.ELECTRIC.amount_electric,
-    "Nước (m3)": item.WATER.amount_water,
-    "Chân trời Carbon": item.carbon,
-    "ID Hóa đơn": item.invoice,
-    "Data Hash": item.dataHash,
-    "Blockchain TX": item.address_transtraction,
-    "Thời gian": new Date(item.date).toLocaleString(),
-  }));
+export const exportToExcel = async (reports: IReport[], fileName: string) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Reports");
 
-  // 2. Tạo Worksheet từ dữ liệu đã phẳng
-  const worksheet = XLSX.utils.json_to_sheet(flattenData);
+  // 1. Chuẩn bị dữ liệu phẳng (dạng mảng của mảng cho Table)
+  const rows = reports.map((item) => [
+    item.username,
+    item.name,
+    item.ELECTRIC.amount_electric,
+    item.WATER.amount_water,
+    item.carbon,
+    item.invoice,
+    item.dataHash,
+    item.address_transtraction,
+    new Date(item.date).toLocaleString(),
+  ]);
 
-  // 3. Tạo Workbook (file Excel) và thêm Worksheet vào
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Reports");
+  // 2. Thêm Table vào Worksheet
+  worksheet.addTable({
+    name: "ReportTable",
+    ref: "A1", // Bắt đầu từ ô A1
+    headerRow: true,
+    totalsRow: false,
+    style: {
+      theme: "TableStyleMedium9", // Màu xanh chuyên nghiệp
+      showRowStripes: true,
+    },
+    columns: [
+      { name: "Nhân viên", filterButton: true },
+      { name: "Họ và tên", filterButton: true },
+      { name: "Số điện (kWh)" },
+      { name: "Nước (m3)" },
+      { name: "Chân trời Carbon" },
+      { name: "ID Hóa đơn" },
+      { name: "Data Hash" },
+      { name: "Blockchain TX" },
+      { name: "Thời gian" },
+    ],
+    rows: rows,
+  });
 
-  // 4. Xuất file (Tải về trình duyệt)
-  XLSX.writeFile(workbook, `${fileName}.xlsx`);
+  // 3. Tự động điều chỉnh độ rộng cột (Auto-fit)
+  worksheet.columns.forEach((column) => {
+    column.width = 20; // Độ rộng mặc định
+  });
+
+  // 4. Xuất file và tải về trình duyệt
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  saveAs(blob, `${fileName}.xlsx`);
 };
