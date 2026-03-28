@@ -14,6 +14,7 @@ const CreateUserForm: React.FC = () => {
     name: "",
     role: "User",
   });
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -70,40 +71,48 @@ const CreateUserForm: React.FC = () => {
             <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
           </div>
 
-          {/* Role Select với Custom Arrow */}
-          {/* Role Select với Custom Arrow & Glow Effect */}
-          <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
-            {/* Label nhỏ phía trên để tăng độ chuyên nghiệp */}
+          {/* Custom Role Select với hiệu ứng mũi tên xoay */}
+          <div className="relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500">
             <label className="block text-[10px] uppercase tracking-[0.2em] text-indigo-400/60">
               Select Role
             </label>
-
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="w-full appearance-none bg-transparent py-2 pb-3 outline-none cursor-pointer text-gray-300 focus:text-white transition-colors duration-300"
+            <button
+              type="button"
+              className="w-full flex items-center justify-between bg-transparent py-2 pb-3 outline-none cursor-pointer text-gray-300 focus:text-white transition-colors duration-300"
+              onClick={() => setRoleDropdownOpen((open) => !open)}
+              onBlur={() => setTimeout(() => setRoleDropdownOpen(false), 100)}
+              tabIndex={0}
             >
-              <option value="User" className="bg-[#1e293b] text-white">
-                User
-              </option>
-              <option value="Admin" className="bg-[#1e293b] text-white">
-                Admin
-              </option>
-            </select>
-
-            {/* Custom Arrow với hiệu ứng xoay khi focus */}
-            <div className="pointer-events-none absolute right-0 bottom-2 flex items-center text-gray-500 transition-transform duration-300 group-focus-within:rotate-180 group-focus-within:text-indigo-400">
-              <svg
-                className="h-5 w-5 fill-none stroke-current stroke-2"
-                viewBox="0 0 24 24"
+              <span>{formData.role}</span>
+              <span
+                className={`ml-2 transition-transform duration-300 ${roleDropdownOpen ? "rotate-180 text-indigo-400" : ""}`}
               >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </div>
-
-            {/* Thanh bar chạy dưới chân đồng bộ với Username/Fullname */}
-            <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
+                <svg
+                  className="h-5 w-5 fill-none stroke-current stroke-2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </span>
+            </button>
+            {roleDropdownOpen && (
+              <div className="absolute left-0 right-0 mt-1 z-20 rounded-md bg-[#1e293b] shadow-lg border border-indigo-500/30">
+                {["User", "Admin"].map((role) => (
+                  <div
+                    key={role}
+                    className={`px-4 py-2 cursor-pointer hover:bg-indigo-600/40 text-white ${formData.role === role ? "font-bold text-indigo-400" : ""}`}
+                    onMouseDown={() => {
+                      setFormData((prev) => ({ ...prev, role }));
+                      setRoleDropdownOpen(false);
+                    }}
+                  >
+                    {role}
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Thanh bar chạy dưới chân */}
+            <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500" />
           </div>
 
           {/* Submit Button với Glow Effect */}
