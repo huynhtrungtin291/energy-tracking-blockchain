@@ -1,4 +1,4 @@
-import NavMoveableBtn from "./components/nav-moveable-btn";
+import NavMoveableBtn from "./components/btns/nav-moveable-btn";
 import { UserAuthWrapper } from "./context/UserAuth";
 import "./globals.css";
 

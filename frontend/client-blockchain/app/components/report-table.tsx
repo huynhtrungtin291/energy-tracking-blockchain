@@ -2,26 +2,26 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { reports } from "@/app/test-data/reports";
-import ExportXLSXButton from "./export-xlsx-btn";
+import ExportXLSXButton from "./btns/export-xlsx-btn";
 
 const PAGE_SIZE = 5;
 
 export default function ReportTable() {
-  const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [page, setPage] = useState(1);
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
 
-  const yearOptions = useMemo(() => {
-    const years = Array.from(
-      new Set(reports.map((report) => new Date(report.date).getFullYear())),
-    );
-    return years.sort((a, b) => b - a).map(String);
-  }, []);
+  // const today = useMemo(() => {
+  //   const now = new Date();
+  //   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  //   return local.toISOString().slice(0, 10);
+  // }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
-  }, [selectedYear]);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -32,12 +32,22 @@ export default function ReportTable() {
   }, []);
 
   const filteredReports = useMemo(() => {
-    if (selectedYear === "all") return reports;
-    return reports.filter(
-      (report) =>
-        new Date(report.date).getFullYear().toString() === selectedYear,
-    );
-  }, [selectedYear]);
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    if (start) start.setHours(0, 0, 0, 0);
+    if (end) end.setHours(23, 59, 59, 999);
+
+    if (!start && !end) return reports;
+
+    return reports.filter((report) => {
+      const date = new Date(report.date);
+      if (Number.isNaN(date.getTime())) return false;
+      if (start && date < start) return false;
+      if (end && date > end) return false;
+      return true;
+    });
+  }, [startDate, endDate]);
 
   const totalPages = Math.max(1, Math.ceil(filteredReports.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -66,18 +76,25 @@ export default function ReportTable() {
           </div>
 
           <div className="flex items-center gap-3">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="rounded-t-lg border-l border-r border-t border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400"
-            >
-              <option value="all">Tất cả năm</option>
-              {yearOptions.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
+            <span className="text-sm text-slate-300">Từ:</span>
+            <input
+              type="date"
+              value={startDate}
+              max={endDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-[56px] sm:w-auto rounded-t-lg border-l border-r border-t border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400"
+              placeholder="Từ"
+            />
+
+            <span className="text-sm text-slate-300">Đến:</span>
+            <input
+              type="date"
+              value={endDate}
+              min={startDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-[56px] sm:w-auto rounded-t-lg border-l border-r border-t border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400"
+              placeholder="Đến"
+            />
           </div>
         </div>
 
@@ -93,7 +110,7 @@ export default function ReportTable() {
                   <th className="px-6 py-4 font-semibold">Hóa đơn Điện</th>
                   <th className="px-6 py-4 font-semibold">Nước (m³)</th>
                   <th className="px-6 py-4 font-semibold">Hóa đơn Nước</th>
-                  <th className="px-6 py-4 font-semibold">Chân trời Carbon</th>
+                  <th className="px-6 py-4 font-semibold">Carbon</th>
                   <th className="px-6 py-4 font-semibold">
                     Trạng thái Blockchain
                   </th>

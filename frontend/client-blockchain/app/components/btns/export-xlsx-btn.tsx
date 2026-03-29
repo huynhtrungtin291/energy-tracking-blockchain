@@ -1,5 +1,5 @@
 import { exportToExcel } from "@/app/utils/export-xlsx";
-import { IReport } from "../definations/report-details";
+import { IReport } from "../../definations/report-details";
 
 export default function ExportXLSXButton({ reports }: { reports: IReport[] }) {
   return (
