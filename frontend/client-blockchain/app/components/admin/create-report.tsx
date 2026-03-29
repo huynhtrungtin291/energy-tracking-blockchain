@@ -2,19 +2,22 @@
 
 import React, { useMemo, useState } from "react";
 import axiosClient from "@/app/utils/axios-client";
+import { useAuth } from "@/app/context/UserAuth";
+// Import icons từ lucide-react
+import { Plus, Eye, Loader2 } from "lucide-react";
 
 interface FormData {
-  username: string;
   electricAmount: string;
-  electricInvoice: string; // base64 or data URL of image
+  electricInvoice: string;
   waterAmount: string;
-  waterInvoice: string; // base64 or data URL of image
-  date: string; // yyyy-MM-dd
+  waterInvoice: string;
+  date: string;
 }
 
 const CreateReportForm: React.FC = () => {
+  const { userAuth } = useAuth();
+
   const [formData, setFormData] = useState<FormData>({
-    username: "",
     electricAmount: "",
     electricInvoice: "",
     waterAmount: "",
@@ -28,18 +31,17 @@ const CreateReportForm: React.FC = () => {
     const electric = Number(formData.electricAmount);
     const water = Number(formData.waterAmount);
     return (
-      !!formData.username.trim() &&
       !!formData.electricInvoice.trim() &&
       !!formData.waterInvoice.trim() &&
       !!formData.date &&
       Number.isFinite(electric) &&
-      Number.isFinite(water)
+      electric >= 0 &&
+      Number.isFinite(water) &&
+      water >= 0
     );
   }, [formData]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -70,34 +72,29 @@ const CreateReportForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage(null);
-
-    if (!isValid) {
-      setMessage("Vui lòng điền đầy đủ và đúng định dạng.");
-      return;
-    }
+    if (!isValid) return;
 
     setSubmitting(true);
+    setMessage(null);
     try {
       const payload = {
-        username: formData.username.trim(),
+        username: userAuth?.username || "unknown_user",
         electric: {
           amount: Number(formData.electricAmount),
-          invoiceUrl: formData.electricInvoice.trim(), // base64 image
+          invoiceUrl: formData.electricInvoice,
         },
         water: {
           amount: Number(formData.waterAmount),
-          invoiceUrl: formData.waterInvoice.trim(), // base64 image
+          invoiceUrl: formData.waterInvoice,
         },
         date: {
-          date: formData.date, // ISO date string (yyyy-MM-dd)
+          date: formData.date,
         },
       };
 
       await axiosClient.post("/resource-usage", payload);
       setMessage("Tạo báo cáo thành công.");
       setFormData({
-        username: "",
         electricAmount: "",
         electricInvoice: "",
         waterAmount: "",
@@ -113,50 +110,50 @@ const CreateReportForm: React.FC = () => {
   };
 
   return (
-    <main className="relative mx-auto flex min-h-screen w-full items-center justify-center bg-[#0f172a] overflow-hidden p-4">
+    <main className="relative mx-auto flex min-h-screen w-full items-center justify-center bg-[#0f172a] overflow-hidden p-4 font-sans">
+      {/* Background Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/20 blur-[120px]" />
 
-      <section className="relative z-10 flex w-full max-w-[36rem] flex-col space-y-8 rounded-2xl bg-white/5 p-10 shadow-2xl backdrop-blur-xl border border-white/10">
+      <section className="relative z-10 flex w-full max-w-[32rem] flex-col space-y-8 rounded-2xl bg-white/5 p-8 shadow-2xl backdrop-blur-xl border border-white/10">
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
             Tạo báo cáo
           </h1>
         </div>
 
         <form className="flex flex-col space-y-6" onSubmit={handleSubmit}>
-          {/* Username */}
-          <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
-            <input
-              type="text"
-              name="username"
-              placeholder="Username"
-              value={formData.username}
-              onChange={handleChange}
-              className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
-            />
-            <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
-          </div>
-
-          {/* Electric */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
+          {/* Row: Electric */}
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 items-end">
+            {/* Input: chiếm 2 cột trên mobile, 4 cột trên sm */}
+            <div className="col-span-2 sm:col-span-4 group relative border-b-2 border-gray-700 transition-all duration-500 focus-within:border-indigo-500 flex items-center">
               <input
                 type="number"
-                min="0"
-                step="0.01"
                 name="electricAmount"
                 placeholder="Điện (kWh)"
                 value={formData.electricAmount}
                 onChange={handleChange}
-                className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
+                className="w-full bg-transparent py-2 text-lg text-white outline-none placeholder:text-gray-600"
               />
-              <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
             </div>
-            <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
-              <label className="flex items-center justify-between py-2 text-sm text-slate-300 cursor-pointer">
-                {/* <span className=" overflow-hidden max-w-[50px]">{formData.electricInvoice ? formData.electricInvoice : "Ảnh hóa đơn điện"}</span> */}
-                <span className="underline">{!formData.electricInvoice ? "Ảnh hóa đơn điện" : "Thay đổi"}</span>
+
+            {/* Buttons: luôn chiếm 1 cột */}
+            <div className="col-span-1 flex items-center justify-end gap-2">
+              {formData.electricInvoice && (
+                <button
+                  title="Xem hóa đơn"
+                  type="button"
+                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-purple-400 border border-white/10 transition-all active:scale-90 animate-in zoom-in"
+                  onClick={() => window.open(formData.electricInvoice)}
+                >
+                  <Eye size={20} />
+                </button>
+              )}
+              <label
+                title="Thêm ảnh hóa đơn"
+                className="cursor-pointer p-2 rounded-full bg-white/5 hover:bg-white/10 text-indigo-400 border border-white/10 transition-all active:scale-90"
+              >
+                <Plus size={20} />
                 <input
                   type="file"
                   accept="image/*"
@@ -164,38 +161,39 @@ const CreateReportForm: React.FC = () => {
                   className="hidden"
                   onChange={(e) => handleImageChange(e, "electricInvoice")}
                 />
-                {formData.electricInvoice && (
-                  <button
-                    className="px-3 sm:px-4 py-2 rounded-lg border border-white/20 bg-white/5 text-sm text-slate-200 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
-                    onClick={() => {}}
-                    //   disabled={!formData.electricInvoice}
-                  >
-                    Xem lại
-                  </button>
-                )}
               </label>
-              <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
             </div>
           </div>
 
-          {/* Water */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
+          {/* Row: Water */}
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 items-end">
+            <div className="col-span-2 sm:col-span-4 group relative border-b-2 border-gray-700 transition-all duration-500 focus-within:border-indigo-500 flex items-center">
               <input
                 type="number"
-                min="0"
-                step="0.01"
                 name="waterAmount"
                 placeholder="Nước (m³)"
                 value={formData.waterAmount}
                 onChange={handleChange}
-                className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
+                className="w-full bg-transparent py-2 text-lg text-white outline-none placeholder:text-gray-600"
               />
-              <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
             </div>
-            <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
-              <label className="flex items-center justify-between py-2 text-sm text-slate-300 cursor-pointer">
-                <span>Ảnh hóa đơn nước</span>
+
+            <div className="col-span-1 flex items-center justify-end gap-2">
+              {formData.waterInvoice && (
+                <button
+                  title="Xem hóa đơn"
+                  type="button"
+                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-purple-400 border border-white/10 transition-all active:scale-90 animate-in zoom-in"
+                  onClick={() => window.open(formData.waterInvoice)}
+                >
+                  <Eye size={20} />
+                </button>
+              )}
+              <label
+                title="Thêm ảnh hóa đơn"
+                className="cursor-pointer p-2 rounded-full bg-white/5 hover:bg-white/10 text-indigo-400 border border-white/10 transition-all active:scale-90"
+              >
+                <Plus size={20} />
                 <input
                   type="file"
                   accept="image/*"
@@ -203,51 +201,47 @@ const CreateReportForm: React.FC = () => {
                   className="hidden"
                   onChange={(e) => handleImageChange(e, "waterInvoice")}
                 />
-                <span className="text-indigo-300 text-xs">
-                  {formData.waterInvoice ? "Xem lại" : "Chọn / Chụp"}
-                </span>
               </label>
-              <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
             </div>
           </div>
 
-          {/* Date */}
-          <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
+          {/* Row: Date */}
+          <div className="group relative w-full border-b-2 border-gray-700 transition-all duration-500 focus-within:border-indigo-500">
             <input
               type="date"
               name="date"
               value={formData.date}
               onChange={handleChange}
-              className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
+              className="w-full bg-transparent py-2 text-lg text-white outline-none [color-scheme:dark]"
             />
-            <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
           </div>
 
           {message && (
-            <div className="text-sm text-center text-slate-200 bg-white/5 border border-white/10 rounded-md px-3 py-2">
+            <div className="text-sm text-center text-slate-200 bg-white/5 border border-white/10 rounded-md px-3 py-2 animate-in fade-in zoom-in duration-300">
               {message}
             </div>
           )}
 
-          {/* Submit */}
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={!isValid || submitting}
-            className="relative mt-2 group overflow-hidden rounded-lg bg-indigo-600 py-3 font-bold transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.6)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="relative mt-4 group flex items-center justify-center overflow-hidden rounded-xl bg-indigo-600 py-3.5 font-bold text-white transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <span className="relative z-10 uppercase tracking-[0.2em]">
-              {submitting ? "Đang gửi..." : "Tạo"}
+            {submitting ? (
+              <Loader2 className="animate-spin mr-2" size={20} />
+            ) : null}
+            <span className="relative z-10 uppercase tracking-widest text-sm">
+              {submitting ? "Đang xử lý..." : "Gửi báo cáo"}
             </span>
-            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
           </button>
         </form>
       </section>
 
       <style jsx>{`
-        @keyframes shimmer {
-          100% {
-            transform: translateX(100%);
-          }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+          filter: invert(1);
+          cursor: pointer;
         }
       `}</style>
     </main>
