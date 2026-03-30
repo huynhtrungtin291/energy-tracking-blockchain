@@ -1,0 +1,39 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-2fcc0de22cb40c26d372b337abcc879d418aa1d8",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "userSourceNameMap": {
+    "contracts/EnergyTrackingReport.sol": "project/contracts/EnergyTrackingReport.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/EnergyTrackingReport.sol": {
+        "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.19;\r\n\r\ncontract CarbonStorage {\r\n    \r\n    event CarbonReportLogged(address indexed user, uint256 carbonAmount, string dataHash, uint256 timestamp);\r\n\r\n    /**\r\n     * @dev Hàm duy nhất để đẩy dữ liệu lên Blockchain\r\n     * @param _carbonAmount: Lượng carbon (Ví dụ: 10.55kg -> gửi 1055)\r\n     * @param _dataHash: Chuỗi SHA-256 từ Backend\r\n     */\r\n    function pushReport(uint256 _carbonAmount, string memory _dataHash) public {\r\n        // Phát sự kiện để Backend bắt được Transaction Hash và lưu vào DB\r\n        emit CarbonReportLogged(msg.sender, _carbonAmount, _dataHash, block.timestamp);\r\n    }\r\n}"
+      }
+    }
+  }
+}
