@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { reports } from "@/app/test-data/reports";
 import ExportXLSXButton from "./btns/export-xlsx-btn";
 
@@ -10,13 +10,31 @@ export default function ReportTable() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [page, setPage] = useState(1);
-  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
 
-  // const today = useMemo(() => {
-  //   const now = new Date();
-  //   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-  //   return local.toISOString().slice(0, 10);
-  // }, []);
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const translateStartRef = useRef({ x: 0, y: 0 });
+  const closeTimerRef = useRef<number | null>(null);
+
+  const closePreview = () => {
+    if (!previewSrc) return;
+    setIsClosing(true);
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+    }
+    closeTimerRef.current = window.setTimeout(() => {
+      setPreviewSrc(null);
+      setIsClosing(false);
+    }, 180);
+  };
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -25,11 +43,74 @@ export default function ReportTable() {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setPreviewSrc(null);
+      if (e.key === "Escape") closePreview();
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsClosing(false);
+    if (previewSrc) {
+      setZoom(1);
+      setTranslate({ x: 0, y: 0 });
+    }
+  }, [previewSrc]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  const clampTranslate = (
+    nextX: number,
+    nextY: number,
+    nextZoom: number = zoom,
+  ) => {
+    const container = containerRef.current;
+    const { width, height } = naturalSize;
+    if (!container || !width || !height) return { x: 0, y: 0 };
+
+    const containerW = container.clientWidth;
+    const containerH = container.clientHeight;
+    const scaledW = width * nextZoom;
+    const scaledH = height * nextZoom;
+
+    const maxX = Math.max(0, (scaledW - containerW) / 2);
+    const maxY = Math.max(0, (scaledH - containerH) / 2);
+
+    return {
+      x: Math.min(maxX, Math.max(-maxX, nextX)),
+      y: Math.min(maxY, Math.max(-maxY, nextY)),
+    };
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMove = (e: MouseEvent) => {
+      const dx = e.clientX - dragStartRef.current.x;
+      const dy = e.clientY - dragStartRef.current.y;
+      const rawX = translateStartRef.current.x + dx;
+      const rawY = translateStartRef.current.y + dy;
+      setTranslate(clampTranslate(rawX, rawY));
+    };
+
+    const handleUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleUp);
+    };
+  }, [isDragging]);
 
   const filteredReports = useMemo(() => {
     const start = startDate ? new Date(startDate) : null;
@@ -311,24 +392,63 @@ export default function ReportTable() {
       {previewSrc && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-          onClick={() => setPreviewSrc(null)}
+          onClick={closePreview}
         >
+          <button
+            type="button"
+            className="border border-white/10 fixed top-4 right-4 rounded-full px-4 py-2 text-sm text-white hover:bg-black/90 shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation();
+              closePreview();
+            }}
+          >
+            Close
+          </button>
           <div
-            className="relative max-h-[95vh] max-w-[95vw] overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-2xl p-2" // Giảm p-4 xuống p-2 để ảnh to hơn nữa
+            ref={containerRef}
+            className={`relative overflow-hidden rounded-2xl shadow-2xl p-2 preview-animate ${
+              isClosing ? "preview-animate-out" : "preview-animate-in"
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             <img
+              ref={imgRef}
               src={previewSrc}
               alt="Invoice preview"
-              className="max-h-[90vh] max-w-[90vw] object-contain"
+              className={`max-w-[80vw] max-h-[80vh] w-auto h-auto select-none ${
+                isDragging ? "cursor-grabbing" : "cursor-grab"
+              }`}
+              draggable={false}
+              onLoad={(e) =>
+                setNaturalSize({
+                  width: e.currentTarget.naturalWidth,
+                  height: e.currentTarget.naturalHeight,
+                })
+              }
+              style={{
+                transform: `translate(${translate.x}px, ${translate.y}px) scale(${zoom})`,
+                transition: isDragging ? "none" : "transform 80ms ease-out",
+              }}
+              onWheel={(e) => {
+                e.preventDefault();
+                const direction = e.deltaY < 0 ? 1 : -1;
+                const nextZoom = Math.min(
+                  5,
+                  Math.max(0.5, zoom + direction * 0.1),
+                );
+                setZoom(nextZoom);
+                setTranslate((prev) =>
+                  clampTranslate(prev.x, prev.y, nextZoom),
+                );
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+                dragStartRef.current = { x: e.clientX, y: e.clientY };
+                translateStartRef.current = { ...translate };
+              }}
+              onMouseLeave={() => setIsDragging(false)}
             />
-            <button
-              type="button"
-              className="absolute top-3 right-3 rounded-full bg-black/70 px-4 py-2 text-sm text-white hover:bg-black/80 shadow-lg"
-              onClick={() => setPreviewSrc(null)}
-            >
-              Close
-            </button>
           </div>
         </div>
       )}

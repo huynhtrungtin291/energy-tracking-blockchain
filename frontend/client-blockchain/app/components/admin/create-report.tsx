@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import axiosClient from "@/app/utils/axios-client";
 import { useAuth } from "@/app/context/UserAuth";
 // Import icons từ lucide-react
-import { Plus, Eye, Loader2 } from "lucide-react";
+import { Eye, Loader2, Upload } from "lucide-react";
 
 interface FormData {
   electricAmount: string;
@@ -26,6 +26,100 @@ const CreateReportForm: React.FC = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const translateStartRef = useRef({ x: 0, y: 0 });
+  const closeTimerRef = useRef<number | null>(null);
+
+  const closePreview = () => {
+    if (!previewSrc) return;
+    setIsClosing(true);
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+    }
+    closeTimerRef.current = window.setTimeout(() => {
+      setPreviewSrc(null);
+      setIsClosing(false);
+    }, 180);
+  };
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closePreview();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  useEffect(() => {
+    setIsClosing(false);
+    if (previewSrc) {
+      setZoom(1);
+      setTranslate({ x: 0, y: 0 });
+    }
+  }, [previewSrc]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  const clampTranslate = (
+    nextX: number,
+    nextY: number,
+    nextZoom: number = zoom,
+  ) => {
+    const container = containerRef.current;
+    const { width, height } = naturalSize;
+    if (!container || !width || !height) return { x: 0, y: 0 };
+
+    const containerW = container.clientWidth;
+    const containerH = container.clientHeight;
+    const scaledW = width * nextZoom;
+    const scaledH = height * nextZoom;
+
+    const maxX = Math.max(0, (scaledW - containerW) / 2);
+    const maxY = Math.max(0, (scaledH - containerH) / 2);
+
+    return {
+      x: Math.min(maxX, Math.max(-maxX, nextX)),
+      y: Math.min(maxY, Math.max(-maxY, nextY)),
+    };
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMove = (e: MouseEvent) => {
+      const dx = e.clientX - dragStartRef.current.x;
+      const dy = e.clientY - dragStartRef.current.y;
+      const rawX = translateStartRef.current.x + dx;
+      const rawY = translateStartRef.current.y + dy;
+      setTranslate(clampTranslate(rawX, rawY));
+    };
+
+    const handleUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleUp);
+    };
+  }, [isDragging]);
 
   const isValid = useMemo(() => {
     const electric = Number(formData.electricAmount);
@@ -43,6 +137,16 @@ const CreateReportForm: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
+    if (name === "electricAmount" || name === "waterAmount") {
+      // Allow only non-negative decimals (empty string permitted for editing)
+      const numericRegex = /^((\d+)(\.\d*)?|\.\d*)$/;
+      if (value === "" || numericRegex.test(value)) {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -128,7 +232,9 @@ const CreateReportForm: React.FC = () => {
             {/* Input: chiếm 2 cột trên mobile, 4 cột trên sm */}
             <div className="col-span-2 sm:col-span-4 group relative border-b-2 border-gray-700 transition-all duration-500 focus-within:border-indigo-500 flex items-center">
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
+                pattern="^((\\d+)(\\.\\d*)?|\\.\\d*)$"
                 name="electricAmount"
                 placeholder="Điện (kWh)"
                 value={formData.electricAmount}
@@ -139,21 +245,21 @@ const CreateReportForm: React.FC = () => {
 
             {/* Buttons: luôn chiếm 1 cột */}
             <div className="col-span-1 flex items-center justify-end gap-2">
-              {formData.electricInvoice && (
-                <button
-                  title="Xem hóa đơn"
-                  type="button"
-                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-purple-400 border border-white/10 transition-all active:scale-90 animate-in zoom-in"
-                  onClick={() => window.open(formData.electricInvoice)}
-                >
-                  <Eye size={20} />
-                </button>
-              )}
-              <label
-                title="Thêm ảnh hóa đơn"
-                className="cursor-pointer p-2 rounded-full bg-white/5 hover:bg-white/10 text-indigo-400 border border-white/10 transition-all active:scale-90"
+              <button
+                title="Xem hóa đơn điện"
+                type="button"
+                className={`p-2 rounded-full bg-white/5 hover:bg-white/10 border-white/10 transition-all
+                  ${formData.electricInvoice ? "text-purple-400 active:scale-90" : "text-gray-600 cursor-not-allowed"}`}
+                onClick={() => setPreviewSrc(formData.electricInvoice)}
+                disabled={!formData.electricInvoice}
               >
-                <Plus size={20} />
+                <Eye size={20} />
+              </button>
+              <label
+                title="Thêm ảnh hóa đơn điện"
+                className="cursor-pointer p-2 rounded-full bg-white/5 hover:bg-white/10 border-white/10 transition-all active:scale-90 text-indigo-400"
+              >
+                <Upload size={20} />
                 <input
                   type="file"
                   accept="image/*"
@@ -169,7 +275,9 @@ const CreateReportForm: React.FC = () => {
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 items-end">
             <div className="col-span-2 sm:col-span-4 group relative border-b-2 border-gray-700 transition-all duration-500 focus-within:border-indigo-500 flex items-center">
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
+                pattern="^((\\d+)(\\.\\d*)?|\\.\\d*)$"
                 name="waterAmount"
                 placeholder="Nước (m³)"
                 value={formData.waterAmount}
@@ -179,21 +287,22 @@ const CreateReportForm: React.FC = () => {
             </div>
 
             <div className="col-span-1 flex items-center justify-end gap-2">
-              {formData.waterInvoice && (
-                <button
-                  title="Xem hóa đơn"
-                  type="button"
-                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-purple-400 border border-white/10 transition-all active:scale-90 animate-in zoom-in"
-                  onClick={() => window.open(formData.waterInvoice)}
-                >
-                  <Eye size={20} />
-                </button>
-              )}
-              <label
-                title="Thêm ảnh hóa đơn"
-                className="cursor-pointer p-2 rounded-full bg-white/5 hover:bg-white/10 text-indigo-400 border border-white/10 transition-all active:scale-90"
+              <button
+                title="Xem hóa đơn nước"
+                type="button"
+                className={`p-2 rounded-full bg-white/5 hover:bg-white/10 border-white/10 transition-all
+                  ${formData.waterInvoice ? "text-purple-400 active:scale-90" : "text-gray-600 cursor-not-allowed"}`}
+                onClick={() => setPreviewSrc(formData.waterInvoice)}
+                disabled={!formData.waterInvoice}
               >
-                <Plus size={20} />
+                <Eye size={20} />
+              </button>
+
+              <label
+                title="Thêm ảnh hóa đơn nước"
+                className="cursor-pointer p-2 rounded-full bg-white/5 hover:bg-white/10 border-white/10 transition-all active:scale-90 text-indigo-400"
+              >
+                <Upload size={20} />
                 <input
                   type="file"
                   accept="image/*"
@@ -244,6 +353,65 @@ const CreateReportForm: React.FC = () => {
           cursor: pointer;
         }
       `}</style>
+
+      {previewSrc && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          onClick={closePreview}
+        >
+          <button
+            type="button"
+            className="border border-white/10 fixed top-4 right-4 rounded-full px-4 py-2 text-sm text-white hover:bg-black/90 shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation();
+              closePreview();
+            }}
+          >
+            Close
+          </button>
+          <div
+            ref={containerRef}
+            className={`relative overflow-hidden rounded-2xl shadow-2xl p-2 preview-animate ${
+              isClosing ? "preview-animate-out" : "preview-animate-in"
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              ref={imgRef}
+              src={previewSrc}
+              alt="Invoice preview"
+              className={`max-w-[80vw] max-h-[80vh] w-auto h-auto select-none ${
+                isDragging ? "cursor-grabbing" : "cursor-grab"
+              }`}
+              draggable={false}
+              onLoad={(e) =>
+                setNaturalSize({
+                  width: e.currentTarget.naturalWidth,
+                  height: e.currentTarget.naturalHeight,
+                })
+              }
+              style={{
+                transform: `translate(${translate.x}px, ${translate.y}px) scale(${zoom})`,
+                transition: isDragging ? "none" : "transform 80ms ease-out",
+              }}
+              onWheel={(e) => {
+                e.preventDefault();
+                const direction = e.deltaY < 0 ? 1 : -1;
+                const nextZoom = Math.min(5, Math.max(0.5, zoom + direction * 0.1));
+                setZoom(nextZoom);
+                setTranslate((prev) => clampTranslate(prev.x, prev.y, nextZoom));
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+                dragStartRef.current = { x: e.clientX, y: e.clientY };
+                translateStartRef.current = { ...translate };
+              }}
+              onMouseLeave={() => setIsDragging(false)}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 };
