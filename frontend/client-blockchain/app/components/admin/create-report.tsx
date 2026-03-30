@@ -221,8 +221,8 @@ const CreateReportForm: React.FC = () => {
 
       <section className="relative z-10 flex w-full max-w-[32rem] flex-col space-y-8 rounded-2xl bg-white/5 p-8 shadow-2xl backdrop-blur-xl border border-white/10">
         <div className="text-center">
-          <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-            Tạo báo cáo
+          <h1 className="leading-normal text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+            Tạo Báo Cáo
           </h1>
         </div>
 
@@ -397,9 +397,14 @@ const CreateReportForm: React.FC = () => {
               onWheel={(e) => {
                 e.preventDefault();
                 const direction = e.deltaY < 0 ? 1 : -1;
-                const nextZoom = Math.min(5, Math.max(0.5, zoom + direction * 0.1));
+                const nextZoom = Math.min(
+                  5,
+                  Math.max(0.5, zoom + direction * 0.1),
+                );
                 setZoom(nextZoom);
-                setTranslate((prev) => clampTranslate(prev.x, prev.y, nextZoom));
+                setTranslate((prev) =>
+                  clampTranslate(prev.x, prev.y, nextZoom),
+                );
               }}
               onMouseDown={(e) => {
                 e.preventDefault();

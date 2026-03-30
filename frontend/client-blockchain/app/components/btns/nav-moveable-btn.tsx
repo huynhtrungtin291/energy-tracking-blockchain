@@ -9,12 +9,12 @@ const actions = [
   {
     icon: <Pencil size={20} />,
     page: "create-report",
-    label: "Tạo 1 report",
+    label: "Tạo 1 báo cáo",
   },
   {
     icon: <UserRoundPlus size={20} />,
     page: "create-account",
-    label: "Tạo 1 account",
+    label: "Tạo 1 tài khoản",
   },
   {
     icon: <ReceiptText size={20} />,

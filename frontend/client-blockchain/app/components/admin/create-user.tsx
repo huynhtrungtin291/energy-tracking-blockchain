@@ -39,8 +39,8 @@ const CreateUserForm: React.FC = () => {
 
       <section className="relative z-10 flex w-full max-w-[30rem] flex-col space-y-10 rounded-2xl bg-white/5 p-10 shadow-2xl backdrop-blur-xl border border-white/10">
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-            Create Account
+          <h1 className="leading-tight text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+            Tạo Tài Khoản
           </h1>
         </div>
 
@@ -122,7 +122,7 @@ const CreateUserForm: React.FC = () => {
             className="relative mt-6 group overflow-hidden rounded-lg bg-indigo-600 py-3 font-bold transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.6)] active:scale-95"
           >
             <span className="relative z-10 uppercase tracking-[0.2em]">
-              Create Account
+              Tạo Tài Khoản
             </span>
             {/* Hiệu ứng tia sáng quét ngang khi hover */}
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
