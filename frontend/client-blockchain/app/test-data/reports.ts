@@ -6,7 +6,7 @@ export const reports: IReport[] = [
     name: "Nguyễn Văn A",
     ELECTRIC: {
       amount_electric: 150.5,
-      invoice_electric: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?auto=format&fit=crop&w=200&q=80",
+      invoice_electric: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?auto=format&fit=crop",
     },
     WATER: {
       amount_water: 12.4,
@@ -23,11 +23,11 @@ export const reports: IReport[] = [
     name: "Lê Thị B",
     ELECTRIC: {
       amount_electric: 210.8,
-      invoice_electric: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&w=200&q=80",
+      invoice_electric: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format",
     },
     WATER: {
       amount_water: 18,
-      invoice_water: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?auto=format&fit=crop&w=200",
+      invoice_water: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?auto=format&fit=crop&",
     },
     carbon: 68.4,
     invoice: "INV-2026-002",
@@ -44,7 +44,7 @@ export const reports: IReport[] = [
     },
     WATER: {
       amount_water: 8.5,
-      invoice_water: "https://images.unsplash.com/photo-1502741126161-b048400d0768?auto=format&fit=crop&w=200&q=80",
+      invoice_water: "https://images.unsplash.com/photo-1502741126161-b048400d0768?auto=format&fit=crop",
     },
     carbon: 29.1,
     invoice: "INV-2026-003",
@@ -57,11 +57,11 @@ export const reports: IReport[] = [
     name: "Trần Văn C",
     ELECTRIC: {
       amount_electric: 102.5,
-      invoice_electric: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=200&q=80",
+      invoice_electric: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop",
     },
     WATER: {
       amount_water: 11.2,
-      invoice_water: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=200&q=80",
+      invoice_water: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop",
     },
     carbon: 31.4,
     invoice: "INV-2026-004",
@@ -74,11 +74,11 @@ export const reports: IReport[] = [
     name: "Trần Văn C",
     ELECTRIC: {
       amount_electric: 110.3,
-      invoice_electric: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=200&q=80",
+      invoice_electric: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop",
     },
     WATER: {
       amount_water: 9.1,
-      invoice_water: "https://images.unsplash.com/photo-1473181488821-2d23949a045a?auto=format&fit=crop&w=200&q=80",
+      invoice_water: "https://images.unsplash.com/photo-1473181488821-2d23949a045a?auto=format&fit=crop",
     },
     carbon: 33.2,
     invoice: "INV-2026-005",
@@ -91,11 +91,11 @@ export const reports: IReport[] = [
     name: "Lê Thị B",
     ELECTRIC: {
       amount_electric: 210.8,
-      invoice_electric: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&w=200&q=80",
+      invoice_electric: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format",
     },
     WATER: {
       amount_water: 18,
-      invoice_water: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?auto=format&fit=crop&w=200",
+      invoice_water: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?auto=format&fit=crop",
     },
     carbon: 68.4,
     invoice: "INV-2026-002",
@@ -108,11 +108,11 @@ export const reports: IReport[] = [
     name: "Lê Thị B",
     ELECTRIC: {
       amount_electric: 210.8,
-      invoice_electric: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&w=200&q=80",
+      invoice_electric: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format",
     },
     WATER: {
       amount_water: 18,
-      invoice_water: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?auto=format&fit=crop&w=200",
+      invoice_water: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?auto=format&fit=crop",
     },
     carbon: 68.4,
     invoice: "INV-2026-002",
@@ -125,11 +125,11 @@ export const reports: IReport[] = [
     name: "Lê Thị B",
     ELECTRIC: {
       amount_electric: 210.8,
-      invoice_electric: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&w=200&q=80",
+      invoice_electric: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format",
     },
     WATER: {
       amount_water: 18,
-      invoice_water: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?auto=format&fit=crop&w=200",
+      invoice_water: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?auto=format&fit=crop",
     },
     carbon: 68.4,
     invoice: "INV-2026-002",

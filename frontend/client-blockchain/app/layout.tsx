@@ -1,3 +1,4 @@
+import NavMoveableBtn from "./components/btns/nav-moveable-btn";
 import { UserAuthWrapper } from "./context/UserAuth";
 import "./globals.css";
 
@@ -11,6 +12,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <UserAuthWrapper>
           {children}
+          <NavMoveableBtn />
         </UserAuthWrapper>
       </body>
     </html>
