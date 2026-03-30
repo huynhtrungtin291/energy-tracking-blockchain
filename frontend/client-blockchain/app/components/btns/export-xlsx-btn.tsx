@@ -1,7 +1,11 @@
 import { exportToExcel } from "@/app/utils/export-xlsx";
-import { IReport } from "../../definations/report-details";
+import { ResponseResourceUsageDto } from "../../definations/report-details";
 
-export default function ExportXLSXButton({ reports }: { reports: IReport[] }) {
+export default function ExportXLSXButton({
+  reports,
+}: {
+  reports: ResponseResourceUsageDto[];
+}) {
   return (
     <button
       onClick={() => exportToExcel(reports, "Environmental_Report")} // temp name

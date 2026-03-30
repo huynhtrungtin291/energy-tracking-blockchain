@@ -5,6 +5,8 @@ import axiosClient from "@/app/utils/axios-client";
 import { useAuth } from "@/app/context/UserAuth";
 // Import icons từ lucide-react
 import { Eye, Loader2, Upload } from "lucide-react";
+import Loading from "../loading";
+import { useRouter } from "next/navigation";
 
 interface FormData {
   electricAmount: string;
@@ -15,7 +17,8 @@ interface FormData {
 }
 
 const CreateReportForm: React.FC = () => {
-  const { userAuth } = useAuth();
+  const { userAuth, isAuthLoading } = useAuth();
+  const router = useRouter();
 
   const [formData, setFormData] = useState<FormData>({
     electricAmount: "",
@@ -51,30 +54,6 @@ const CreateReportForm: React.FC = () => {
     }, 180);
   };
 
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closePreview();
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, []);
-
-  useEffect(() => {
-    setIsClosing(false);
-    if (previewSrc) {
-      setZoom(1);
-      setTranslate({ x: 0, y: 0 });
-    }
-  }, [previewSrc]);
-
-  useEffect(() => {
-    return () => {
-      if (closeTimerRef.current) {
-        window.clearTimeout(closeTimerRef.current);
-      }
-    };
-  }, []);
-
   const clampTranslate = (
     nextX: number,
     nextY: number,
@@ -97,43 +76,6 @@ const CreateReportForm: React.FC = () => {
       y: Math.min(maxY, Math.max(-maxY, nextY)),
     };
   };
-
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMove = (e: MouseEvent) => {
-      const dx = e.clientX - dragStartRef.current.x;
-      const dy = e.clientY - dragStartRef.current.y;
-      const rawX = translateStartRef.current.x + dx;
-      const rawY = translateStartRef.current.y + dy;
-      setTranslate(clampTranslate(rawX, rawY));
-    };
-
-    const handleUp = () => {
-      setIsDragging(false);
-    };
-
-    window.addEventListener("mousemove", handleMove);
-    window.addEventListener("mouseup", handleUp);
-    return () => {
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("mouseup", handleUp);
-    };
-  }, [isDragging]);
-
-  const isValid = useMemo(() => {
-    const electric = Number(formData.electricAmount);
-    const water = Number(formData.waterAmount);
-    return (
-      !!formData.electricInvoice.trim() &&
-      !!formData.waterInvoice.trim() &&
-      !!formData.date &&
-      Number.isFinite(electric) &&
-      electric >= 0 &&
-      Number.isFinite(water) &&
-      water >= 0
-    );
-  }, [formData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -212,6 +154,76 @@ const CreateReportForm: React.FC = () => {
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closePreview();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  useEffect(() => {
+    setIsClosing(false);
+    if (previewSrc) {
+      setZoom(1);
+      setTranslate({ x: 0, y: 0 });
+    }
+  }, [previewSrc]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMove = (e: MouseEvent) => {
+      const dx = e.clientX - dragStartRef.current.x;
+      const dy = e.clientY - dragStartRef.current.y;
+      const rawX = translateStartRef.current.x + dx;
+      const rawY = translateStartRef.current.y + dy;
+      setTranslate(clampTranslate(rawX, rawY));
+    };
+
+    const handleUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleUp);
+    };
+  }, [isDragging]);
+
+  const isValid = useMemo(() => {
+    const electric = Number(formData.electricAmount);
+    const water = Number(formData.waterAmount);
+    return (
+      !!formData.electricInvoice.trim() &&
+      !!formData.waterInvoice.trim() &&
+      !!formData.date &&
+      Number.isFinite(electric) &&
+      electric >= 0 &&
+      Number.isFinite(water) &&
+      water >= 0
+    );
+  }, [formData]);
+
+  useEffect(() => {
+    if (!userAuth && !isAuthLoading) {
+      console.log("User is not authenticated, redirecting to login...");
+      router.push("/login");
+    }
+  }, [router, userAuth, isAuthLoading]);
+
+  if (isAuthLoading || !userAuth) return <Loading />;
 
   return (
     <main className="relative mx-auto flex min-h-screen w-full items-center justify-center bg-[#0f172a] overflow-hidden p-4 font-sans">

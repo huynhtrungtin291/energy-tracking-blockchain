@@ -1,5 +1,5 @@
-import CreateUserForm from "@/app/components/admin/create-user";
+import CreateAccountForm from "@/app/components/admin/create-account";
 
 export default function CreateUserPage() {
-  return <CreateUserForm />;
+  return <CreateAccountForm />;
 }

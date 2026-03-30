@@ -4,21 +4,17 @@ import { createContext, useContext, useMemo, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
 interface IJwtPayload {
-  sub?: string; // Google id (sub)
-  username?: string; // GitHub username
-  email?: string; // Google email
-  name?: string; // Google/Github
-  avatar_url?: string; // GitHub avatar URL
-  picture?: string; // Google avatar URL
-  exp?: number;
-  userId?: string; // Custom user ID from backend
-  // login?: string;
+  username?: string;
+  name?: string; // Full name
+  role?: "admin" | "user" | "all";
+  exp?: number; // Expiration time (timestamp)
 }
 
 interface IUserAuth {
   username: string;
   name: string;
   token: string;
+  role: "admin" | "user" | "all";
   exp?: number;
 }
 
@@ -68,19 +64,19 @@ export const UserAuthWrapper = ({
       }
 
       setUserAuth({
-        username: decoded.sub || decoded.name || "unknown",
+        username: decoded.username || "unknown",
         name: decoded.name || "unknown",
+        role:
+          (decoded.role?.toLowerCase() as "admin" | "user" | "all") || "user",
         exp: decoded.exp,
         token,
       });
 
       console.log("Decoded JWT payload:", decoded);
-
     } catch (err) {
       console.error("Invalid token:", err);
       localStorage.removeItem("auth_token");
       setUserAuth(null);
-
     } finally {
       setIsAuthLoading(false);
     }

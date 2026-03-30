@@ -1,21 +1,23 @@
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import { IReport } from "../definations/report-details";
+import { ResponseResourceUsageDto } from "../definations/report-details";
 
-export const exportToExcel = async (reports: IReport[], fileName: string) => {
+export const exportToExcel = async (
+  reports: ResponseResourceUsageDto[],
+  fileName: string,
+) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Reports");
 
   // 1. Chuẩn bị dữ liệu phẳng (dạng mảng của mảng cho Table)
   const rows = reports.map((item) => [
     item.username,
-    item.name,
-    item.ELECTRIC.amount_electric,
-    item.WATER.amount_water,
+    item.username,
+    item.electric.amount_electric,
+    item.water.amount_water,
     item.carbon,
-    item.invoice,
     item.dataHash,
-    item.address_transtraction,
+    item.address_transaction,
     new Date(item.date).toLocaleString(),
   ]);
 
@@ -35,7 +37,6 @@ export const exportToExcel = async (reports: IReport[], fileName: string) => {
       { name: "Số điện (kWh)" },
       { name: "Nước (m3)" },
       { name: "Chân trời Carbon" },
-      { name: "ID Hóa đơn" },
       { name: "Dữ liệu đã Hash" },
       //{ name: "Dữ liệu chưa Hash" },
       { name: "Blockchain TX" },

@@ -2,28 +2,56 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
-import { Pencil, UserRoundPlus, Menu, X, ReceiptText } from "lucide-react";
+import {
+  Pencil,
+  UserRoundPlus,
+  Menu,
+  X,
+  ReceiptText,
+  LogOut,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/UserAuth";
 
-const actions = [
+const actions: {
+  id: string;
+  icon: React.ReactNode;
+  to: string;
+  label: string;
+  onlyAdmin: boolean;
+}[] = [
   {
+    id: "create-report",
     icon: <Pencil size={20} />,
-    page: "create-report",
+    to: "create-report",
     label: "Tạo 1 báo cáo",
+    onlyAdmin: true,
   },
   {
+    id: "create-account",
     icon: <UserRoundPlus size={20} />,
-    page: "create-account",
+    to: "create-account",
     label: "Tạo 1 tài khoản",
+    onlyAdmin: true,
   },
   {
+    id: "report-list",
     icon: <ReceiptText size={20} />,
-    page: "/",
+    to: "/",
     label: "Danh sách báo cáo",
+    onlyAdmin: false,
+  },
+  {
+    id: "logout",
+    icon: <LogOut size={20} />,
+    to: "/login",
+    label: "Đăng xuất",
+    onlyAdmin: false,
   },
 ];
 
 export default function NavMoveableBtn() {
+  const { userAuth } = useAuth();
   const router = useRouter();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -92,6 +120,8 @@ export default function NavMoveableBtn() {
     return () => window.removeEventListener("resize", updateQuadrant);
   }, [updateQuadrant]);
 
+  if (!userAuth) return null;
+
   return (
     <Draggable
       nodeRef={nodeRef}
@@ -119,27 +149,38 @@ export default function NavMoveableBtn() {
                 }`
           }`}
         >
-          {actions.map((action, index) => (
-            <div
-              key={index}
-              // Đảo chiều flex nếu nằm bên phải để label không bị che
-              className={`action-item flex items-center gap-2 cursor-pointer group active:scale-95 transition-all duration-200 ${
-                quadrant.x === "right" ? "flex-row-reverse" : "flex-row"
-              }`}
-              style={{ transitionDelay: `${index * 50}ms` }}
-              onClick={() => {
-                router.push(`/${action.page}`);
-                setIsOpen(false);
-              }}
-            >
-              <div className="flex-shrink-0 w-11 h-11 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 shadow-xl border border-slate-700 hover:bg-slate-700">
-                {action.icon}
+          {actions
+            .filter((action) => {
+              if (!userAuth) return false;
+              // nếu nút chỉ cho admin, check user có role admin không?
+              return action.onlyAdmin ? userAuth.role === "admin" : true;
+            })
+            .map((action, index) => (
+              <div
+                key={index}
+                // Đảo chiều flex nếu nằm bên phải để label không bị che
+                className={`action-item flex items-center gap-2 cursor-pointer group active:scale-95 transition-all duration-200 ${
+                  quadrant.x === "right" ? "flex-row-reverse" : "flex-row"
+                }`}
+                style={{ transitionDelay: `${index * 50}ms` }}
+                onClick={() => {
+                  if (action.id === "logout") {
+                    localStorage.removeItem("auth_token");
+                    window.location.href = action.to;
+                  } else {
+                    router.push(action.to);
+                  }
+                  setIsOpen(false);
+                }}
+              >
+                <div className="flex-shrink-0 w-11 h-11 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 shadow-xl border border-slate-700 hover:bg-slate-700">
+                  {action.icon}
+                </div>
+                <span className="flex-shrink-0 bg-slate-900 text-slate-200 px-3 py-2 rounded-lg shadow-lg text-xs font-semibold border border-slate-700">
+                  {action.label}
+                </span>
               </div>
-              <span className="flex-shrink-0 bg-slate-900 text-slate-200 px-3 py-2 rounded-lg shadow-lg text-xs font-semibold border border-slate-700">
-                {action.label}
-              </span>
-            </div>
-          ))}
+            ))}
         </div>
 
         {/* Nút chính (Menu / X) */}

@@ -1,17 +1,44 @@
 "use client";
 
-import React, { useState } from "react";
+import { createAccount } from "@/app/apis/api";
+import { AccountData } from "@/app/definations/account";
+import React, { useEffect, useState } from "react";
+import Loading from "../loading";
+import { useAuth } from "@/app/context/UserAuth";
+import { useRouter } from "next/navigation";
 
-interface UserFormData {
-  username: string;
-  name: string;
-  role: string;
-}
+// Trigger a client-side download of a simple text receipt after account creation
+const downloadAccountReceipt = (data: AccountData) => {
+  const lines = [
+    `Username: ${data.username}`,
+    `Full name: ${data.name}`,
+    `Password: ${data.password}`,
+    `Role: ${data.role}`,
+    `Created at: ${new Date().toISOString()}`,
+  ];
 
-const CreateUserForm: React.FC = () => {
-  const [formData, setFormData] = useState<UserFormData>({
+  const blob = new Blob([lines.join("\n")], {
+    type: "text/plain;charset=utf-8",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${data.username || "new"}-${data.name}-${new Date().toISOString()}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
+const CreateAccountForm: React.FC = () => {
+  const router = useRouter();
+  const { userAuth, isAuthLoading } = useAuth();
+
+  const [formData, setFormData] = useState<AccountData>({
     username: "",
     name: "",
+    password: "",
     role: "User",
   });
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
@@ -23,14 +50,45 @@ const CreateUserForm: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCreateAccount = () => {
+  const handleCreateAccount = async () => {
     if (!formData.username || !formData.name) {
       alert("Please fill in all required fields.");
       return;
     }
-    console.log("Dữ liệu gửi đi:", formData);
-    alert("Tạo tài khoản thành công!");
+
+    try {
+      const response = await createAccount(formData);
+      const message = (response as { message?: string } | undefined)?.message;
+      const createdAccount = { ...formData };
+
+      if (response) {
+        alert(message || response);
+        downloadAccountReceipt(createdAccount);
+        // Reset form after successful account creation
+        setFormData({
+          username: "",
+          name: "",
+          password: "",
+          role: "User",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to create account:", error);
+      alert("Failed to create account. Please try again.");
+    }
   };
+
+  useEffect(() => {
+    // Only redirect once auth finished loading; prevents false negatives on first render
+    // isAuthLoading được khởi tạo là true, userAuth được khởi tạo là null, 
+    if (!isAuthLoading && !userAuth) {
+      console.log("User is not authenticated, redirecting to login...");
+      // alert("Bạn cần đăng nhập để xem báo cáo."); // to test
+      router.push("/login");
+    }
+  }, [router, userAuth, isAuthLoading]);
+
+  if (isAuthLoading || !userAuth) return <Loading />;
 
   return (
     <main className="relative mx-auto flex min-h-screen w-full items-center justify-center bg-[#0f172a] overflow-hidden p-4">
@@ -39,8 +97,8 @@ const CreateUserForm: React.FC = () => {
 
       <section className="relative z-10 flex w-full max-w-[30rem] flex-col space-y-10 rounded-2xl bg-white/5 p-10 shadow-2xl backdrop-blur-xl border border-white/10">
         <div className="text-center">
-          <h1 className="leading-tight text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-            Tạo Tài Khoản
+          <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+            Create Account
           </h1>
         </div>
 
@@ -122,7 +180,7 @@ const CreateUserForm: React.FC = () => {
             className="relative mt-6 group overflow-hidden rounded-lg bg-indigo-600 py-3 font-bold transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.6)] active:scale-95"
           >
             <span className="relative z-10 uppercase tracking-[0.2em]">
-              Tạo Tài Khoản
+              Create Account
             </span>
             {/* Hiệu ứng tia sáng quét ngang khi hover */}
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
@@ -142,4 +200,4 @@ const CreateUserForm: React.FC = () => {
   );
 };
 
-export default CreateUserForm;
+export default CreateAccountForm;
