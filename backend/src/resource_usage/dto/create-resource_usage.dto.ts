@@ -1,34 +1,15 @@
-import { Type } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsString, ValidateNested } from 'class-validator';
-
-class ElectricDto {
-  @IsNumber()
-  amount_electric: number;
-
-  @IsString()
-  invoice_electric: string;
-}
-
-class WaterDto {
-  @IsNumber()
-  amount_water: number;
-
-  @IsString()
-  invoice_water: string;
-}
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateResourceUsageDto {
+  @IsNotEmpty()
   @IsString()
   username: string;
 
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => ElectricDto)
-  electric: ElectricDto;
+  @IsString()
+  electric: string;
 
-  @ValidateNested()
-  @Type(() => WaterDto)
-  water: WaterDto;
+  @IsString()
+  water: string;
 
   @IsNotEmpty()
   date: Date;

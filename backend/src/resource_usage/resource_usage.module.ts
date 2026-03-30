@@ -4,9 +4,11 @@ import { ResourceUsageService } from './resource_usage.service';
 import { ResourceUsageController } from './resource_usage.controller';
 import { ResourceUsage, ResourceUsageSchema } from './schema/resource_usage.schema';
 import { BlockchainModule } from '../blockchain/blockchain.module';
+import { UsersModule } from 'src/users/users.module';
+import { CloudModule } from 'src/cloud/cloud.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: ResourceUsage.name, schema: ResourceUsageSchema }]), BlockchainModule],
+  imports: [MongooseModule.forFeature([{ name: ResourceUsage.name, schema: ResourceUsageSchema }]), BlockchainModule, UsersModule, CloudModule],
   controllers: [ResourceUsageController],
   providers: [ResourceUsageService],
   exports: [ResourceUsageService],

@@ -37,4 +37,9 @@ export class UsersService {
   async findUserByUserName(username: string): Promise<User | null> {
     return await this.userModel.findOne({ username: username }).exec();
   }
+
+  async findNameByUsername(username: string): Promise<string | null> {
+    const user = await this.findUserByUserName(username);
+    return user ? user.name : null;
+  }
 }

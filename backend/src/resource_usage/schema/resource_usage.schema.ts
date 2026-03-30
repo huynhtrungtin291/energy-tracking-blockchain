@@ -10,6 +10,7 @@ export class ResourceUsage {
 
   @Prop({
     required: true,
+    _id: false,
     type: {
       amount_electric: { type: Number, required: true }, // float
       invoice_electric: { type: String, required: true }, // URL hình ảnh
@@ -22,6 +23,7 @@ export class ResourceUsage {
 
   @Prop({
     required: true,
+    _id: false,
     type: {
       amount_water: { type: Number, required: true }, // float
       invoice_water: { type: String, required: true }, // URL hình ảnh

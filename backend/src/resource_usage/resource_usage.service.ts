@@ -6,34 +6,65 @@ import { ResourceUsage } from './schema/resource_usage.schema';
 import { CreateResourceUsageDto } from './dto/create-resource_usage.dto';
 import { MonthYearRangeQueryDto, ResponseResourceUsageDto } from './dto/reponse-resource_usage.dto';
 import { BlockchainService } from '../blockchain/blockchain.service';
+import { UsersService } from 'src/users/users.service';
+import { CloudService } from 'src/cloud/cloud.service';
 
 @Injectable()
 export class ResourceUsageService {
   constructor(
     @InjectModel(ResourceUsage.name) private ResourceUsageDocument: Model<ResourceUsage>,
     private blockchainService: BlockchainService,
+    private usersService: UsersService,
+    private cloudService: CloudService,
   ) {}
 
-  async create(createResourceUsageDto: CreateResourceUsageDto) {
+  async create(createResourceUsageDto: CreateResourceUsageDto, electricFile: Express.Multer.File, waterFile: Express.Multer.File) {
     const createdResourceUsage = new this.ResourceUsageDocument(createResourceUsageDto);
-    const co2Emissions = this.calcCO2(createResourceUsageDto.electric.amount_electric, createResourceUsageDto.water.amount_water);
+    const co2Emissions = this.calcCO2(Number(createResourceUsageDto.electric), Number(createResourceUsageDto.water));
+    const [electricUpload, waterUpload] = await Promise.all([this.cloudService.uploadFile(electricFile, 'electric'), this.cloudService.uploadFile(waterFile, 'water')]);
+
+    const invoice_electric = electricUpload.url;
+    const invoice_water = waterUpload.url;
+    const name = await this.usersService.findNameByUsername(createResourceUsageDto.username);
+    const isUser = await this.usersService.findUserByUserName(createResourceUsageDto.username);
+    if (!isUser) {
+      throw new Error('User not found');
+    }
+
+    createdResourceUsage.username = createResourceUsageDto.username;
+    createdResourceUsage.electric = {
+      amount_electric: Number(createResourceUsageDto.electric),
+      invoice_electric: invoice_electric,
+    };
+    createdResourceUsage.water = {
+      amount_water: Number(createResourceUsageDto.water),
+      invoice_water: invoice_water,
+    };
+    createdResourceUsage.date = createResourceUsageDto.date;
     createdResourceUsage.carbon = co2Emissions;
+
     const data = {
       username: createdResourceUsage.username,
-      name: "Huỳnh Trung Tín",
-      electric: createdResourceUsage.electric,
-      water: createdResourceUsage.water,
-      carbon: createdResourceUsage.carbon,
+      name: name || undefined,
+      electric: Number(createdResourceUsage.electric.amount_electric),
+      water: Number(createdResourceUsage.water.amount_water),
+      carbon: Number(createdResourceUsage.carbon),
       date: createdResourceUsage.date,
     };
+    console.log('data', data);
     console.log('Data to hash', JSON.stringify(data));
     const dataToHash = this.sha256(data);
-    createdResourceUsage.dataHash = dataToHash;
-    // Gửi hash lên Blockchain
-    const addressTransaction = await this.blockchainService.pushHashToChain(dataToHash);
-    createdResourceUsage.address_transaction = addressTransaction;
+    const addressTransaction: string = await this.blockchainService.pushHashToChain(dataToHash);
 
-    return await createdResourceUsage.save();
+    createdResourceUsage.dataHash = dataToHash;
+    createdResourceUsage.address_transaction = addressTransaction;
+    const savedUsage = await createdResourceUsage.save();
+
+    // Xoa du lieu trong buffer sau khi upload xong de giam dau vet trong RAM.
+    electricFile.buffer.fill(0);
+    waterFile.buffer.fill(0);
+
+    return savedUsage;
   }
 
   calcCO2(electric_kWh: number, water_m3: number): number {
