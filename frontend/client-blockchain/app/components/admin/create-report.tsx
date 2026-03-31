@@ -1,18 +1,18 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import axiosClient from "@/app/utils/axios-client";
 import { useAuth } from "@/app/context/UserAuth";
 // Import icons từ lucide-react
 import { Eye, Loader2, Upload } from "lucide-react";
 import Loading from "../loading";
 import { useRouter } from "next/navigation";
+import axiosClient from "@/app/utils/axios-client";
 
-interface FormData {
+interface FormView {
   electricAmount: string;
-  electricInvoice: string;
+  electricPreview: string;
   waterAmount: string;
-  waterInvoice: string;
+  waterPreview: string;
   date: string;
 }
 
@@ -20,15 +20,20 @@ const CreateReportForm: React.FC = () => {
   const { userAuth, isAuthLoading } = useAuth();
   const router = useRouter();
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<FormView>({
     electricAmount: "",
-    electricInvoice: "",
+    electricPreview: "",
     waterAmount: "",
-    waterInvoice: "",
+    waterPreview: "",
     date: "",
   });
+
+  const [electricFile, setElectricFile] = useState<File | null>(null);
+  const [waterFile, setWaterFile] = useState<File | null>(null);
+
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [showSnackbar, setShowSnackbar] = useState(false);
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
@@ -41,6 +46,8 @@ const CreateReportForm: React.FC = () => {
   const dragStartRef = useRef({ x: 0, y: 0 });
   const translateStartRef = useRef({ x: 0, y: 0 });
   const closeTimerRef = useRef<number | null>(null);
+  const snackbarTimerRef = useRef<number | null>(null);
+  const snackbarHideTimerRef = useRef<number | null>(null);
 
   const closePreview = () => {
     if (!previewSrc) return;
@@ -92,23 +99,32 @@ const CreateReportForm: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const fileToDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
+  const fileToDataUrl = (file: File) => {
+    return new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result));
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  };
 
   const handleImageChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    key: "electricInvoice" | "waterInvoice",
+    key: "electric" | "water",
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const dataUrl = await fileToDataUrl(file);
-      setFormData((prev) => ({ ...prev, [key]: dataUrl }));
+      if (key === "electric") {
+        setElectricFile(file);
+        setFormData((prev) => ({ ...prev, electricPreview: dataUrl }));
+      } else {
+        setWaterFile(file);
+        setFormData((prev) => ({ ...prev, waterPreview: dataUrl }));
+      }
+
+      console.log("Selected file:", file);
       setMessage(null);
     } catch (err) {
       console.error(err);
@@ -123,30 +139,40 @@ const CreateReportForm: React.FC = () => {
     setSubmitting(true);
     setMessage(null);
     try {
-      const payload = {
-        username: userAuth?.username || "unknown_user",
-        electric: {
-          amount: Number(formData.electricAmount),
-          invoiceUrl: formData.electricInvoice,
-        },
-        water: {
-          amount: Number(formData.waterAmount),
-          invoiceUrl: formData.waterInvoice,
-        },
-        date: {
-          date: formData.date,
-        },
-      };
+      if (!userAuth?.username) {
+        throw new Error("Missing username");
+      }
 
-      await axiosClient.post("/resource-usage", payload);
-      setMessage("Tạo báo cáo thành công.");
+      //#region data to backend
+      const form = new FormData();
+      form.append("username", userAuth.username);
+      form.append("electric", formData.electricAmount || "0");
+      form.append("water", formData.waterAmount || "0");
+      form.append("date", formData.date);
+      if (electricFile) form.append("electric", electricFile);
+      if (waterFile) form.append("water", waterFile);
+
+      const response = await axiosClient.post("/resource-usage", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      //#endregion
+
+      if (response.status === 200 || response.status === 201) {
+        setMessage("Tạo báo cáo thành công!");
+      } else {
+        setMessage("status code: " + response.status);
+      }
+      
       setFormData({
         electricAmount: "",
-        electricInvoice: "",
+        electricPreview: "",
         waterAmount: "",
-        waterInvoice: "",
+        waterPreview: "",
         date: "",
       });
+      setElectricFile(null);
+      setWaterFile(null);
+
     } catch (err) {
       console.error(err);
       setMessage("Có lỗi xảy ra, vui lòng thử lại.");
@@ -176,8 +202,33 @@ const CreateReportForm: React.FC = () => {
       if (closeTimerRef.current) {
         window.clearTimeout(closeTimerRef.current);
       }
+      if (snackbarTimerRef.current) {
+        window.clearTimeout(snackbarTimerRef.current);
+      }
+      if (snackbarHideTimerRef.current) {
+        window.clearTimeout(snackbarHideTimerRef.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (!message) return;
+
+    setShowSnackbar(true);
+
+    if (snackbarTimerRef.current) window.clearTimeout(snackbarTimerRef.current);
+    if (snackbarHideTimerRef.current)
+      window.clearTimeout(snackbarHideTimerRef.current);
+
+    // Start hide after 5s
+    snackbarTimerRef.current = window.setTimeout(() => {
+      setShowSnackbar(false);
+      // Remove message after transition
+      snackbarHideTimerRef.current = window.setTimeout(() => {
+        setMessage(null);
+      }, 300);
+    }, 5000);
+  }, [message]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -206,15 +257,15 @@ const CreateReportForm: React.FC = () => {
     const electric = Number(formData.electricAmount);
     const water = Number(formData.waterAmount);
     return (
-      !!formData.electricInvoice.trim() &&
-      !!formData.waterInvoice.trim() &&
+      !!electricFile &&
+      !!waterFile &&
       !!formData.date &&
       Number.isFinite(electric) &&
       electric >= 0 &&
       Number.isFinite(water) &&
       water >= 0
     );
-  }, [formData]);
+  }, [formData, electricFile, waterFile]);
 
   useEffect(() => {
     if (!userAuth && !isAuthLoading) {
@@ -246,12 +297,12 @@ const CreateReportForm: React.FC = () => {
               <input
                 type="text"
                 inputMode="decimal"
-                pattern="^((\\d+)(\\.\\d*)?|\\.\\d*)$"
+                // pattern="^((\\d+)(\\.\\d*)?|\\.\\d*)$"
                 name="electricAmount"
                 placeholder="Điện (kWh)"
                 value={formData.electricAmount}
                 onChange={handleChange}
-                className="w-full bg-transparent py-2 text-lg text-white outline-none placeholder:text-gray-600"
+                className="px-2 rounded-sm w-full bg-transparent py-2 text-lg text-white outline-none placeholder:text-gray-600"
               />
             </div>
 
@@ -261,9 +312,9 @@ const CreateReportForm: React.FC = () => {
                 title="Xem hóa đơn điện"
                 type="button"
                 className={`p-2 rounded-full bg-white/5 hover:bg-white/10 border-white/10 transition-all
-                  ${formData.electricInvoice ? "text-purple-400 active:scale-90" : "text-gray-600 cursor-not-allowed"}`}
-                onClick={() => setPreviewSrc(formData.electricInvoice)}
-                disabled={!formData.electricInvoice}
+                  ${electricFile ? "text-purple-400 active:scale-90" : "text-gray-600 cursor-not-allowed"}`}
+                onClick={() => setPreviewSrc(formData.electricPreview || null)}
+                disabled={!electricFile}
               >
                 <Eye size={20} />
               </button>
@@ -277,7 +328,7 @@ const CreateReportForm: React.FC = () => {
                   accept="image/*"
                   capture="environment"
                   className="hidden"
-                  onChange={(e) => handleImageChange(e, "electricInvoice")}
+                  onChange={(e) => handleImageChange(e, "electric")}
                 />
               </label>
             </div>
@@ -289,12 +340,12 @@ const CreateReportForm: React.FC = () => {
               <input
                 type="text"
                 inputMode="decimal"
-                pattern="^((\\d+)(\\.\\d*)?|\\.\\d*)$"
+                // pattern="^((\\d+)(\\.\\d*)?|\\.\\d*)$"
                 name="waterAmount"
                 placeholder="Nước (m³)"
                 value={formData.waterAmount}
                 onChange={handleChange}
-                className="w-full bg-transparent py-2 text-lg text-white outline-none placeholder:text-gray-600"
+                className="px-2 rounded-sm w-full bg-transparent py-2 text-lg text-white outline-none placeholder:text-gray-600"
               />
             </div>
 
@@ -303,9 +354,9 @@ const CreateReportForm: React.FC = () => {
                 title="Xem hóa đơn nước"
                 type="button"
                 className={`p-2 rounded-full bg-white/5 hover:bg-white/10 border-white/10 transition-all
-                  ${formData.waterInvoice ? "text-purple-400 active:scale-90" : "text-gray-600 cursor-not-allowed"}`}
-                onClick={() => setPreviewSrc(formData.waterInvoice)}
-                disabled={!formData.waterInvoice}
+                  ${waterFile ? "text-purple-400 active:scale-90" : "text-gray-600 cursor-not-allowed"}`}
+                onClick={() => setPreviewSrc(formData.waterPreview || null)}
+                disabled={!waterFile}
               >
                 <Eye size={20} />
               </button>
@@ -320,28 +371,27 @@ const CreateReportForm: React.FC = () => {
                   accept="image/*"
                   capture="environment"
                   className="hidden"
-                  onChange={(e) => handleImageChange(e, "waterInvoice")}
+                  onChange={(e) => handleImageChange(e, "water")}
                 />
               </label>
             </div>
           </div>
 
           {/* Row: Date */}
-          <div className="group relative w-full border-b-2 border-gray-700 transition-all duration-500 focus-within:border-indigo-500">
+          <div className="group relative w-full transition-all duration-500 focus-within:border-indigo-500">
             <input
               type="date"
               name="date"
               value={formData.date}
               onChange={handleChange}
-              className="w-full bg-transparent py-2 text-lg text-white outline-none [color-scheme:dark]"
+              data-date={
+                formData.date
+                  ? new Date(formData.date).toLocaleDateString("en-GB")
+                  : "dd/mm/yyyy"
+              }
+              className="px-2 rounded-sm w-full bg-transparent py-2 text-lg text-white outline-none [color-scheme:dark]"
             />
           </div>
-
-          {message && (
-            <div className="text-sm text-center text-slate-200 bg-white/5 border border-white/10 rounded-md px-3 py-2 animate-in fade-in zoom-in duration-300">
-              {message}
-            </div>
-          )}
 
           {/* Submit Button */}
           <button
@@ -353,7 +403,7 @@ const CreateReportForm: React.FC = () => {
               <Loader2 className="animate-spin mr-2" size={20} />
             ) : null}
             <span className="relative z-10 uppercase tracking-widest text-sm">
-              {submitting ? "Đang xử lý..." : "Gửi báo cáo"}
+              {submitting ? "Đang xử lý..." : "Tạo"}
             </span>
           </button>
         </form>
@@ -427,6 +477,18 @@ const CreateReportForm: React.FC = () => {
               onMouseLeave={() => setIsDragging(false)}
             />
           </div>
+        </div>
+      )}
+      {message && (
+        <div
+          id="snackbar"
+          className={`fixed bottom-14 left-1/2 -translate-x-1/2 text-3xl font-bold transition-all duration-300 ease-in-out ${
+            showSnackbar
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-3"
+          }`}
+        >
+          {message}
         </div>
       )}
     </main>

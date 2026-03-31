@@ -18,3 +18,9 @@ export interface MonthYearRangeQueryDto {
   to?: Date;
   from?: Date;
 }
+
+export interface CreateResourceUsageDto {
+  electric: string;
+  water: string;
+  date: string;
+}
