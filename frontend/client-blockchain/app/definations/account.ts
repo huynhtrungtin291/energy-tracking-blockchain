@@ -2,7 +2,7 @@ export interface AccountData {
     username: string;
     name: string;
     password: string;
-    role: string;
+    role: "user" | "admin";
 }
 
 // export interface DataEmailSend {

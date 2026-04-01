@@ -162,7 +162,7 @@ const CreateReportForm: React.FC = () => {
       } else {
         setMessage("status code: " + response.status);
       }
-      
+
       setFormData({
         electricAmount: "",
         electricPreview: "",
@@ -173,6 +173,7 @@ const CreateReportForm: React.FC = () => {
       setElectricFile(null);
       setWaterFile(null);
 
+      router.push(`/reports-created`);
     } catch (err) {
       console.error(err);
       setMessage("Có lỗi xảy ra, vui lòng thử lại.");
@@ -272,9 +273,17 @@ const CreateReportForm: React.FC = () => {
       console.log("User is not authenticated, redirecting to login...");
       router.push("/login");
     }
+
+    if (userAuth && userAuth.role !== "admin") {
+      console.log("User is authenticated but not an admin, redirecting...");
+      router.push("/");
+    }
+    
   }, [router, userAuth, isAuthLoading]);
 
-  if (isAuthLoading || !userAuth) return <Loading />;
+  const isNotAdmin = userAuth && userAuth.role !== "admin";
+
+  if (isAuthLoading || !userAuth || isNotAdmin) return <Loading />;
 
   return (
     <main className="relative mx-auto flex min-h-screen w-full items-center justify-center bg-[#0f172a] overflow-hidden p-4 font-sans">

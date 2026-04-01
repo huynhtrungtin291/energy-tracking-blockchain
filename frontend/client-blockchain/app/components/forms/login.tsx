@@ -65,6 +65,11 @@ export default function LoginForm() {
     localStorage.setItem("auth_token", token);
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleLogin();
+  };
+
   useEffect(() => {
     if (userAuth) {
       console.log("User is authenticated, redirecting...");
@@ -90,7 +95,7 @@ export default function LoginForm() {
             </h1>
           </div>
 
-          <div className="flex flex-col space-y-6">
+          <form className="flex flex-col space-y-6" onSubmit={handleSubmit}>
             <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
               <input
                 type="text"
@@ -119,8 +124,7 @@ export default function LoginForm() {
 
             {/* Submit Button với Glow Effect */}
             <button
-              type="button"
-              onClick={handleLogin}
+              type="submit"
               className="relative mt-6 group overflow-hidden rounded-lg bg-indigo-600 py-3 font-bold transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.6)] active:scale-95"
             >
               <span className="relative z-10 uppercase tracking-[0.2em]">
@@ -129,7 +133,7 @@ export default function LoginForm() {
               {/* Hiệu ứng tia sáng quét ngang khi hover */}
               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
             </button>
-          </div>
+          </form>
         </section>
 
         {/* Tailwind Keyframes (Thêm vào file CSS hoặc dùng style tag) */}

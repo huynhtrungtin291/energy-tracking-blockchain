@@ -1,19 +1,19 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { getYearlyUsage } from "../apis/api";
-import ExportXLSXButton from "./btns/export-xlsx-btn";
-import Loading from "./loading";
-import { useAuth } from "../context/UserAuth";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/UserAuth";
 import {
   MonthYearRangeQueryDto,
   ResponseResourceUsageDto,
-} from "../definations/report-details";
+} from "@/app/definations/report-details";
+import { getYearlyUsage } from "@/app/apis/api";
+import Loading from "@/app/components/loading";
+import ExportXLSXButton from "@/app/components/btns/export-xlsx-btn";
 
 const PAGE_SIZE = 5;
 
-export default function ReportTable() {
+export default function ReportsCreated() {
   const { userAuth, isAuthLoading } = useAuth();
   const router = useRouter();
 
@@ -22,13 +22,7 @@ export default function ReportTable() {
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [userSelected, setUserSelected] = useState<string>("");
-
   const [page, setPage] = useState(1);
-
-  const [usernameOptions, setUsernameOptions] = useState<string[]>([]);
 
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -115,11 +109,6 @@ export default function ReportTable() {
   }, [previewSrc]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPage(1);
-  }, [startDate, endDate]);
-
-  useEffect(() => {
     if (!isDragging) return;
 
     const handleMove = (e: MouseEvent) => {
@@ -149,49 +138,13 @@ export default function ReportTable() {
       setIsDataLoading(true);
       setFetchError(null);
 
-      let fromValue = startDate;
-      let toValue = endDate;
-
-      if (startDate && !endDate) {
-        toValue = new Date().toISOString().split("T")[0];
-        setEndDate(toValue);
-      }
-
-      if (endDate && !startDate) {
-        const d = new Date(endDate);
-        d.setMonth(d.getMonth() - 12);
-        fromValue = d.toISOString().split("T")[0];
-        setStartDate(fromValue);
-      }
-
-      if (fromValue && toValue) {
-        const fromDate = new Date(fromValue);
-        const toDate = new Date(toValue);
-        if (fromDate > toDate) {
-          setFetchError("Ngày bắt đầu không được lớn hơn ngày kết thúc.");
-          setIsDataLoading(false);
-          return;
-        }
-      }
-
-      const payload: MonthYearRangeQueryDto = {};
-
-      if (fromValue) payload.from = new Date(`${fromValue}T00:00:00.000Z`);
-      if (toValue) payload.to = new Date(`${toValue}T00:00:00.000Z`);
-      if (userSelected) payload.username = userSelected;
-
-      console.log("filter payload:", payload);
+      const payload: MonthYearRangeQueryDto = { username: userAuth.username };
 
       try {
         const apiData = await getYearlyUsage(payload);
 
         console.log("Fetched reports:", apiData);
         setReports(apiData);
-
-        const usernames = apiData.map((item) => item.username).filter(Boolean);
-        setUsernameOptions((prev) =>
-          Array.from(new Set([...prev, ...usernames])),
-        );
         
       } catch (error) {
         console.error("Failed to fetch reports", error);
@@ -203,7 +156,7 @@ export default function ReportTable() {
     };
 
     fetchReports();
-  }, [startDate, endDate, userSelected, isAuthLoading, userAuth]);
+  }, [isAuthLoading, userAuth]);
 
   useEffect(() => {
     // Only redirect once auth finished loading; prevents false negatives on first render
@@ -235,48 +188,6 @@ export default function ReportTable() {
               {fetchError && (
                 <p className="text-sm text-red-300 mt-2">{fetchError}</p>
               )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <select
-                value={userSelected}
-                onChange={(e) => setUserSelected(e.target.value)}
-                className="w-[80px] sm:w-auto rounded-t-lg border-l border-r border-t border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400 appearance-none cursor-pointer"
-              >
-                <option value="" disabled hidden>
-                  Username
-                </option>
-                {usernameOptions.map((username) => (
-                  <option
-                    key={username}
-                    value={username}
-                    className="bg-slate-800"
-                  >
-                    {username}
-                  </option>
-                ))}
-              </select>
-
-              <span className="text-sm text-slate-300">Từ:</span>
-              <input
-                type="date"
-                value={startDate}
-                max={endDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-[56px] sm:w-auto rounded-t-lg border-l border-r border-t border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400"
-                placeholder="Từ"
-              />
-
-              <span className="text-sm text-slate-300">Đến:</span>
-              <input
-                type="date"
-                value={endDate}
-                min={startDate}
-                max={new Date().toISOString().split("T")[0]}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-[56px] sm:w-auto rounded-t-lg border-l border-r border-t border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400"
-                placeholder="Đến"
-              />
             </div>
           </div>
 

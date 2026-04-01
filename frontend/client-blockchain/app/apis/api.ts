@@ -29,6 +29,9 @@ export const login = async (username: string, password: string): Promise<string>
 export const createAccount = async (accountData: AccountData): Promise<string> => {
   try {
     const response = await axiosClient.post<{ message: string }>('/users', accountData);
+
+    console.log('Account creation response:', response);
+    
     if (!response.data) {
       throw new Error('Invalid response from server');
     }

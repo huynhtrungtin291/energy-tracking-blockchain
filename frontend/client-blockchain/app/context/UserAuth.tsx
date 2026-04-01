@@ -14,7 +14,7 @@ interface IUserAuth {
   username: string;
   name: string;
   token: string;
-  role: "admin" | "user" | "all";
+  role: "admin" | "user";
   exp?: number;
 }
 
@@ -67,7 +67,7 @@ export const UserAuthWrapper = ({
         username: decoded.username || "unknown",
         name: decoded.name || "unknown",
         role:
-          (decoded.role?.toLowerCase() as "admin" | "user" | "all") || "user",
+          (decoded.role?.toLowerCase() as "admin" | "user") || "user",
         exp: decoded.exp,
         token,
       });

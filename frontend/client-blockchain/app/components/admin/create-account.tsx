@@ -31,6 +31,8 @@ const downloadAccountReceipt = (data: AccountData) => {
   URL.revokeObjectURL(url);
 };
 
+const roles: AccountData["role"][] = ["user", "admin"];
+
 const CreateAccountForm: React.FC = () => {
   const router = useRouter();
   const { userAuth, isAuthLoading } = useAuth();
@@ -39,7 +41,7 @@ const CreateAccountForm: React.FC = () => {
     username: "",
     name: "",
     password: "",
-    role: "User",
+    role: "user",
   });
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
@@ -51,14 +53,14 @@ const CreateAccountForm: React.FC = () => {
   };
 
   const handleCreateAccount = async () => {
-    if (!formData.username || !formData.name) {
+    if (!formData.username || !formData.name || !formData.password) {
       alert("Please fill in all required fields.");
       return;
     }
 
     try {
       const response = await createAccount(formData);
-      const message = (response as { message?: string } | undefined)?.message;
+      const message = `Tạo ${formData.username} vai trò ${formData.role} thành công!`;
       const createdAccount = { ...formData };
 
       if (response) {
@@ -69,7 +71,7 @@ const CreateAccountForm: React.FC = () => {
           username: "",
           name: "",
           password: "",
-          role: "User",
+          role: "user",
         });
       }
     } catch (error) {
@@ -80,15 +82,23 @@ const CreateAccountForm: React.FC = () => {
 
   useEffect(() => {
     // Only redirect once auth finished loading; prevents false negatives on first render
-    // isAuthLoading được khởi tạo là true, userAuth được khởi tạo là null, 
+    // isAuthLoading được khởi tạo là true, userAuth được khởi tạo là null,
     if (!isAuthLoading && !userAuth) {
       console.log("User is not authenticated, redirecting to login...");
       // alert("Bạn cần đăng nhập để xem báo cáo."); // to test
       router.push("/login");
     }
+
+    if (userAuth && userAuth.role !== "admin") {
+      console.log("User is authenticated but not an admin, redirecting...");
+      router.push("/");
+    }
+
   }, [router, userAuth, isAuthLoading]);
 
-  if (isAuthLoading || !userAuth) return <Loading />;
+  const isNotAdmin = userAuth && userAuth.role !== "admin";
+
+  if (isAuthLoading || !userAuth || isNotAdmin) return <Loading />;
 
   return (
     <main className="relative mx-auto flex min-h-screen w-full items-center justify-center bg-[#0f172a] overflow-hidden p-4">
@@ -129,6 +139,18 @@ const CreateAccountForm: React.FC = () => {
             <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
           </div>
 
+          <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
+            />
+            <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
+          </div>
+
           {/* Custom Role Select với hiệu ứng mũi tên xoay */}
           <div className="relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500">
             <label className="block text-[10px] uppercase tracking-[0.2em] text-indigo-400/60">
@@ -155,7 +177,7 @@ const CreateAccountForm: React.FC = () => {
             </button>
             {roleDropdownOpen && (
               <div className="absolute left-0 right-0 mt-1 z-20 rounded-md bg-[#1e293b] shadow-lg border border-indigo-500/30">
-                {["User", "Admin"].map((role) => (
+                {roles.map((role) => (
                   <div
                     key={role}
                     className={`px-4 py-2 cursor-pointer hover:bg-indigo-600/40 text-white ${formData.role === role ? "font-bold text-indigo-400" : ""}`}
