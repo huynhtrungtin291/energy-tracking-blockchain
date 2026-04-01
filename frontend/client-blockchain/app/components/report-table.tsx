@@ -17,15 +17,18 @@ export default function ReportTable() {
   const { userAuth, isAuthLoading } = useAuth();
   const router = useRouter();
 
-  const [reportsData, setReportsData] = useState<ResponseResourceUsageDto[]>(
-    [],
-  );
+  const [reports, setReports] = useState<ResponseResourceUsageDto[]>([]);
+
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [userSelected, setUserSelected] = useState<string>("");
+
   const [page, setPage] = useState(1);
+
+  const [usernameOptions, setUsernameOptions] = useState<string[]>([]);
 
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -52,36 +55,6 @@ export default function ReportTable() {
     }, 180);
   };
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPage(1);
-  }, [startDate, endDate]);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closePreview();
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, []);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsClosing(false);
-    if (previewSrc) {
-      setZoom(1);
-      setTranslate({ x: 0, y: 0 });
-    }
-  }, [previewSrc]);
-
-  useEffect(() => {
-    return () => {
-      if (closeTimerRef.current) {
-        window.clearTimeout(closeTimerRef.current);
-      }
-    };
-  }, []);
-
   const clampTranslate = (
     nextX: number,
     nextY: number,
@@ -104,6 +77,47 @@ export default function ReportTable() {
       y: Math.min(maxY, Math.max(-maxY, nextY)),
     };
   };
+
+  const totalPages = Math.max(1, Math.ceil(reports.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+
+  const paginatedReports = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return reports.slice(start, start + PAGE_SIZE);
+  }, [reports, currentPage]);
+
+  const formatDate = (value: string | Date) =>
+    new Intl.DateTimeFormat("vi-VN").format(new Date(value));
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closePreview();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsClosing(false);
+    if (previewSrc) {
+      setZoom(1);
+      setTranslate({ x: 0, y: 0 });
+    }
+  }, [previewSrc]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -128,35 +142,6 @@ export default function ReportTable() {
     };
   }, [isDragging]);
 
-  const filteredReports = useMemo(() => {
-    const start = startDate ? new Date(startDate) : null;
-    const end = endDate ? new Date(endDate) : null;
-
-    if (start) start.setHours(0, 0, 0, 0);
-    if (end) end.setHours(23, 59, 59, 999);
-
-    if (!start && !end) return reportsData;
-
-    return reportsData.filter((report) => {
-      const date = new Date(report.date);
-      if (Number.isNaN(date.getTime())) return false;
-      if (start && date < start) return false;
-      if (end && date > end) return false;
-      return true;
-    });
-  }, [startDate, endDate, reportsData]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredReports.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-
-  const paginatedReports = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredReports.slice(start, start + PAGE_SIZE);
-  }, [filteredReports, currentPage]);
-
-  const formatDate = (value: string | Date) =>
-    new Intl.DateTimeFormat("vi-VN").format(new Date(value));
-
   useEffect(() => {
     const fetchReports = async () => {
       if (isAuthLoading || !userAuth) return;
@@ -164,26 +149,46 @@ export default function ReportTable() {
       setIsDataLoading(true);
       setFetchError(null);
 
+      if (startDate && !endDate) {
+        setFetchError("Vui lòng chọn ngày kết thúc.");
+        setIsDataLoading(false);
+        return;
+      }
+
+      if (endDate && !startDate) {
+        setFetchError("Vui lòng chọn ngày bắt đầu.");
+        setIsDataLoading(false);
+        return;
+      }
+
       const payload: MonthYearRangeQueryDto = {};
+
       if (startDate) payload.from = new Date(startDate);
       if (endDate) payload.to = new Date(endDate);
+      if (userSelected) payload.username = userSelected;
 
       try {
         const apiData = await getYearlyUsage(payload);
 
         console.log("Fetched reports:", apiData);
-        setReportsData(apiData);
+        setReports(apiData);
+
+        const usernames = apiData.map((item) => item.username).filter(Boolean);
+        setUsernameOptions((prev) =>
+          Array.from(new Set([...prev, ...usernames])),
+        );
+
       } catch (error) {
         console.error("Failed to fetch reports", error);
         setFetchError("Không thể tải báo cáo. Vui lòng thử lại.");
-        setReportsData([]);
+        setReports([]);
       } finally {
         setIsDataLoading(false);
       }
     };
 
     fetchReports();
-  }, [startDate, endDate, isAuthLoading, userAuth]);
+  }, [startDate, endDate, userSelected, isAuthLoading, userAuth]);
 
   useEffect(() => {
     // Only redirect once auth finished loading; prevents false negatives on first render
@@ -218,6 +223,25 @@ export default function ReportTable() {
             </div>
 
             <div className="flex items-center gap-3">
+              <select
+                value={userSelected}
+                onChange={(e) => setUserSelected(e.target.value)}
+                className="w-[80px] sm:w-auto rounded-t-lg border-l border-r border-t border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400 appearance-none cursor-pointer"
+              >
+                <option value="" disabled hidden>
+                  Username
+                </option>
+                {usernameOptions.map((username) => (
+                  <option
+                    key={username}
+                    value={username}
+                    className="bg-slate-800"
+                  >
+                    {username}
+                  </option>
+                ))}
+              </select>
+
               <span className="text-sm text-slate-300">Từ:</span>
               <input
                 type="date"
@@ -233,6 +257,7 @@ export default function ReportTable() {
                 type="date"
                 value={endDate}
                 min={startDate}
+                max={new Date().toISOString().split("T")[0]}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="w-[56px] sm:w-auto rounded-t-lg border-l border-r border-t border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400"
                 placeholder="Đến"
@@ -380,7 +405,7 @@ export default function ReportTable() {
           <div className="w-full border-t border-white/10">
             <div className="flex ml-auto items-center justify-between px-6 py-4 ">
               {/* Cột 1: left */}
-              <ExportXLSXButton reports={filteredReports} />
+              <ExportXLSXButton reports={reports} />
 
               {/* Cột 2: center */}
               <div className="text-center">

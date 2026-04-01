@@ -17,8 +17,9 @@ export interface ResponseResourceUsageDto {
 }
 
 export interface MonthYearRangeQueryDto {
-  to?: Date;
   from?: Date;
+  to?: Date;
+  username?: string;
 }
 
 export interface CreateResourceUsageDto {

@@ -389,6 +389,7 @@ const CreateReportForm: React.FC = () => {
                   ? new Date(formData.date).toLocaleDateString("en-GB")
                   : "dd/mm/yyyy"
               }
+              max={new Date().toISOString().split("T")[0]}
               className="px-2 rounded-sm w-full bg-transparent py-2 text-lg text-white outline-none [color-scheme:dark]"
             />
           </div>
