@@ -10,15 +10,16 @@ export const exportToExcel = async (
   const worksheet = workbook.addWorksheet("Reports");
 
   // 1. Chuẩn bị dữ liệu phẳng (dạng mảng của mảng cho Table)
-  const rows = reports.map((item) => [
-    item.username,
-    item.username,
-    item.electric.amount_electric,
-    item.water.amount_water,
-    item.carbon,
-    item.dataHash,
-    item.address_transaction,
-    new Date(item.date).toLocaleString(),
+  const rows = reports.map((r) => [
+    r.username,
+    r.name,
+    r.electric.amount_electric,
+    r.water.amount_water,
+    r.carbon,
+    r.dataHash,
+    r.dataToHash,
+    r.address_transaction,
+    new Date(r.date).toLocaleString(),
   ]);
 
   // 2. Thêm Table vào Worksheet
@@ -38,7 +39,7 @@ export const exportToExcel = async (
       { name: "Nước (m3)" },
       { name: "Chân trời Carbon" },
       { name: "Dữ liệu đã Hash" },
-      //{ name: "Dữ liệu chưa Hash" },
+      { name: "Dữ liệu chưa Hash" },
       { name: "Blockchain TX" },
       { name: "Thời gian" },
     ],

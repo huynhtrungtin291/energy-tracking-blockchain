@@ -1,5 +1,6 @@
 export interface ResponseResourceUsageDto {
   username: string;
+  name: string;
   electric: {
     amount_electric: number;
     invoice_electric: string;
@@ -10,6 +11,7 @@ export interface ResponseResourceUsageDto {
   };
   carbon: number;
   dataHash: string;
+  dataToHash: string;
   address_transaction: string;
   date: string | Date;
 }

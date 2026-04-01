@@ -14,10 +14,12 @@ import {
 const PAGE_SIZE = 5;
 
 export default function ReportTable() {
-  const { userAuth, isAuthLoading } = useAuth(); 
+  const { userAuth, isAuthLoading } = useAuth();
   const router = useRouter();
 
-  const [reportsData, setReportsData] = useState<ResponseResourceUsageDto[]>([]);
+  const [reportsData, setReportsData] = useState<ResponseResourceUsageDto[]>(
+    [],
+  );
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -185,7 +187,7 @@ export default function ReportTable() {
 
   useEffect(() => {
     // Only redirect once auth finished loading; prevents false negatives on first render
-    // isAuthLoading được khởi tạo là true, userAuth được khởi tạo là null, 
+    // isAuthLoading được khởi tạo là true, userAuth được khởi tạo là null,
     if (!isAuthLoading && !userAuth) {
       console.log("User is not authenticated, redirecting to login...");
       // alert("Bạn cần đăng nhập để xem báo cáo."); // to test
@@ -266,7 +268,7 @@ export default function ReportTable() {
                       <td className="px-6 py-4 align-top">
                         <div className="flex flex-col">
                           <span className="font-bold text-white group-hover:text-indigo-400 transition-colors">
-                            {report.username}
+                            {report.name}
                           </span>
                           <span className="text-xs text-slate-500">
                             @{report.username}

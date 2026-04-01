@@ -109,7 +109,6 @@ export default function NavMoveableBtn() {
       x: window.innerWidth / 2 - btnWidth / 2,
       y: btnHeight - padding,
     };
-    console.log("Default Coords:", coords);
     return coords;
   };
 
