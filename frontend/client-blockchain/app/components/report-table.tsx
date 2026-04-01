@@ -168,6 +168,8 @@ export default function ReportTable() {
 
       try {
         const apiData = await getYearlyUsage(payload);
+
+        console.log("Fetched reports:", apiData);
         setReportsData(apiData);
       } catch (error) {
         console.error("Failed to fetch reports", error);
