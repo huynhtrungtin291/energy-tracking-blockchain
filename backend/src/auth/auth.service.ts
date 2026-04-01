@@ -16,7 +16,13 @@ export class AuthService {
       const isMatch = await this.checkPassword(password, user.password);
 
       if (isMatch) {
-        const result: StrategiesDto = { ...user };
+        // const result: StrategiesDto = { ...user };
+        const result: StrategiesDto = {
+          name: user.name,
+          username: user.username,
+          role: user.role,
+        };
+        console.log('User data for token generation:', result); // Debug: Kiểm tra dữ liệu người dùng trước khi tạo token
         return { token: await this.generateToken(result) };
       }
     }
