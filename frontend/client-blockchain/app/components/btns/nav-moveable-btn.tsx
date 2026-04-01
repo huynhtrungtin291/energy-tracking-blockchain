@@ -9,6 +9,7 @@ import {
   X,
   ReceiptText,
   LogOut,
+  RotateCcwKey,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/UserAuth";
@@ -39,6 +40,13 @@ const actions: {
     icon: <ReceiptText size={20} />,
     to: "/",
     label: "Danh sách báo cáo",
+    onlyAdmin: false,
+  },
+  {
+    id: "change-password",
+    icon: <RotateCcwKey size={20} />,
+    to: "/change-password",
+    label: "Đổi mật khẩu",
     onlyAdmin: false,
   },
   {

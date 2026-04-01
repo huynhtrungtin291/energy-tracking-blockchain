@@ -215,9 +215,8 @@ export default function ReportTable() {
     }
   }, [router, userAuth, isAuthLoading]);
 
-  if (isAuthLoading || !userAuth) return <Loading />;
-  if (isDataLoading) return <Loading />;
-
+  if (isAuthLoading || !userAuth || isDataLoading) return <Loading />;
+  
   return (
     <Suspense fallback={<Loading />}>
       <div className="relative mx-auto flex h-screen w-full flex-col overflow-hidden bg-[#0f172a] p-6 text-slate-200">

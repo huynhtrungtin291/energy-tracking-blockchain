@@ -31,7 +31,7 @@ export const createAccount = async (accountData: AccountData): Promise<string> =
     const response = await axiosClient.post<{ message: string }>('/users', accountData);
 
     console.log('Account creation response:', response);
-    
+
     if (!response.data) {
       throw new Error('Invalid response from server');
     }
@@ -66,6 +66,29 @@ export const getYearlyUsage = async (
   } catch (error) {
     console.error('Failed to fetch yearly usage:', error);
     throw new Error('Failed to fetch yearly usage');
+  }
+};
+
+export const changePassword = async (username: string, oldPassword: string, newPassword: string): Promise<string> => {
+  try {
+    const response = await axiosClient.post<{ token: string, message?: string }>(
+      '/auth/change-password', { username, oldPassword, newPassword }
+    );
+
+    if (!response.data) {
+      throw new Error('Invalid response from server');
+    }
+
+    if (!response.data.token) {
+      alert(`${response.data.message || 'No token received'}!`);
+      throw new Error('Invalid token received');
+    }
+
+    return response.data.token;
+
+  } catch (error) {
+    console.error('Change password failed:', error);
+    throw new Error('Change password failed');
   }
 };
 

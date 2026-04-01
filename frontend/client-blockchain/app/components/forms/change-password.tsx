@@ -1,24 +1,24 @@
 "use client";
 
-import { login } from "@/app/apis/api";
+import { changePassword, } from "@/app/apis/api";
 import { useAuth } from "@/app/context/UserAuth";
 import { Suspense, useEffect, useState } from "react";
 import Loading from "../loading";
 import { useRouter } from "next/navigation";
 
-interface UserFormData {
-  username: string;
-  password: string;
+interface Data {
+  oldPassword: string;
+  newPassword: string;
 }
 
-export default function LoginForm() {
+export default function ChangePasswordForm() {
   const { userAuth, isAuthLoading } = useAuth();
 
   const router = useRouter();
 
-  const [formData, setFormData] = useState<UserFormData>({
-    username: "",
-    password: "",
+  const [formData, setFormData] = useState<Data>({
+    oldPassword: "",
+    newPassword: "",
   });
 
   const handleChange = (
@@ -28,59 +28,39 @@ export default function LoginForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleLogin = async () => {
-    if (!formData.username || !formData.password) {
+  const handleChangePassword = async () => {
+    if (!formData.oldPassword || !formData.newPassword) {
       alert("Please fill in all required fields.");
       return;
     }
 
-    // const token = await login(formData.username, formData.password);
+    const response = await changePassword(
+      userAuth?.username || "unknown_user",
+      formData.oldPassword,
+      formData.newPassword,
+    );
 
-    //#region Fake token for testing
-    /**
-    {
-      "username": "admin_dev",
-      "name": "Nguyen Van Admin",
-      "role": "admin",
-      "exp": 1800000000 
+    if (response) {
+      alert("Password changed successfully!");
+      setFormData({ oldPassword: "", newPassword: "" });
+    } else {
+      alert("Failed to change password. Please try again.");
     }
-    {
-      "username": "hoang_user",
-      "name": "Hoàng Nguyễn",
-      "role": "user",
-      "exp": 1800000000
-    }
-     */
-    const token =
-      // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluX2RldiIsIm5hbWUiOiJOZ3V5ZW4gVmFuIEFkbWluIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxODAwMDAwMDAwfQ.signature_not_needed";
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvYW5nX3VzZXIiLCJuYW1lIjoiSG_DoG5nIE5ndXnDqm4iLCJyb2xlIjoidXNlciIsImV4cCI6MTgwMDAwMDAwMH0.signature_not_needed";
-    //#endregion
-
-    if (!token) {
-      alert("Login failed. Please check your credentials.");
-      return;
-    }
-
-    window.location.href = "/";
-    localStorage.setItem("auth_token", token);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleLogin();
+    handleChangePassword();
   };
 
   useEffect(() => {
-    if (userAuth) {
-      console.log("User is authenticated, redirecting...");
-      router.push("/");
+    if (!userAuth && !isAuthLoading) {
+      console.log("User is not authenticated, redirecting to login...");
+      router.push("/login");
     }
-  }, [router, userAuth]);
+  }, [router, userAuth, isAuthLoading]);
 
-  if (isAuthLoading) return <Loading />;
-
-  if (userAuth)
-    return <h1>Bạn đã đăng nhập vào tài khoản {userAuth.username}!</h1>;
+  if (isAuthLoading || !userAuth) return <Loading />;
 
   return (
     <Suspense fallback={<Loading />}>
@@ -91,7 +71,7 @@ export default function LoginForm() {
         <section className="relative z-10 flex w-full max-w-[30rem] flex-col space-y-10 rounded-2xl bg-white/5 p-10 shadow-2xl backdrop-blur-xl border border-white/10">
           <div className="text-center">
             <h1 className="text-4xl font-extrabold tracking-tight leading-tight   bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-              Login
+              Change Password
             </h1>
           </div>
 
@@ -99,9 +79,9 @@ export default function LoginForm() {
             <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
               <input
                 type="text"
-                name="username"
-                placeholder="Username"
-                value={formData.username}
+                name="oldPassword"
+                placeholder="Old Password"
+                value={formData.oldPassword}
                 onChange={handleChange}
                 className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
               />
@@ -113,9 +93,9 @@ export default function LoginForm() {
             <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
               <input
                 type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
+                name="newPassword"
+                placeholder="New Password"
+                value={formData.newPassword}
                 onChange={handleChange}
                 className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
               />
@@ -128,7 +108,7 @@ export default function LoginForm() {
               className="relative mt-6 group overflow-hidden rounded-lg bg-indigo-600 py-3 font-bold transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.6)] active:scale-95"
             >
               <span className="relative z-10 uppercase tracking-[0.2em]">
-                Login
+                Change Password
               </span>
               {/* Hiệu ứng tia sáng quét ngang khi hover */}
               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
