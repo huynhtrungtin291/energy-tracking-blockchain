@@ -31,8 +31,8 @@ export class CloudService {
     });
   }
 
-  async uploadFile(file: Express.Multer.File, prefix = 'resource'): Promise<UploadResult> {
-    const fileName = `${prefix}/${Date.now()}-${file.originalname}`;
+  async uploadFile(file: Express.Multer.File): Promise<UploadResult> {
+    const fileName = this.checkFileName(file.originalname);
 
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
@@ -54,5 +54,15 @@ export class CloudService {
       console.error('Lỗi R2:', error);
       throw new Error('Không thể upload ảnh lên Cloud');
     }
+  }
+
+  checkFileName(text: string): string {
+    const hasSpace = /\s/.test(text); // true
+    const hasVietnameseAccent = /[À-Ỵà-ỵ]/.test(text); // true
+    const hasSpecialChar = /[^A-Za-zÀ-Ỵà-ỵĐđ0-9\s]/.test(text); // true
+    if (!hasSpace && !hasVietnameseAccent && !hasSpecialChar) {
+      return text;
+    }
+    return `img_${new Date().toISOString()}`;
   }
 }

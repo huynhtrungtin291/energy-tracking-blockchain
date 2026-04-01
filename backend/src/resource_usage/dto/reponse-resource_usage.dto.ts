@@ -15,10 +15,13 @@ export class ResponseResourceUsageDto {
   address_transaction: string;
   date: Date;
 }
-export class MonthYearRangeQueryDto {
+export class MonthYearRangeAndUserQueryDto {
   @IsOptional()
   to?: Date;
 
   @IsOptional()
   from?: Date;
+
+  @IsOptional()
+  username?: string;
 }

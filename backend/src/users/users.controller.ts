@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
@@ -12,5 +12,9 @@ export class UsersController {
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+  @Get('get-all-usernames')
+  async getAllUsernames() {
+    return this.usersService.getAllUsernames();
   }
 }

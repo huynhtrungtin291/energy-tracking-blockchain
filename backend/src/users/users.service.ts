@@ -42,4 +42,9 @@ export class UsersService {
     const user = await this.findUserByUserName(username);
     return user ? user.name : null;
   }
+
+  async getAllUsernames(): Promise<string[]> {
+    const users = await this.userModel.find({}, 'username').exec();
+    return users.map((user) => user.username);
+  }
 }
