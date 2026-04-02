@@ -7,6 +7,7 @@ import { Eye, Loader2, Upload } from "lucide-react";
 import Loading from "../loading";
 import { useRouter } from "next/navigation";
 import axiosClient from "@/app/utils/axios-client";
+import { SnackbarType } from "@/app/definations/type";
 
 interface FormView {
   electricAmount: string;
@@ -32,8 +33,11 @@ const CreateReportForm: React.FC = () => {
   const [waterFile, setWaterFile] = useState<File | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+
+  const [message, setMessage] = useState("");
   const [showSnackbar, setShowSnackbar] = useState(false);
+  const [type, setType] = useState<SnackbarType>("info");
+
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
@@ -46,8 +50,6 @@ const CreateReportForm: React.FC = () => {
   const dragStartRef = useRef({ x: 0, y: 0 });
   const translateStartRef = useRef({ x: 0, y: 0 });
   const closeTimerRef = useRef<number | null>(null);
-  const snackbarTimerRef = useRef<number | null>(null);
-  const snackbarHideTimerRef = useRef<number | null>(null);
 
   const closePreview = () => {
     if (!previewSrc) return;
@@ -125,7 +127,6 @@ const CreateReportForm: React.FC = () => {
       }
 
       console.log("Selected file:", file);
-      setMessage(null);
     } catch (err) {
       console.error(err);
       setMessage("Không đọc được ảnh, thử lại.");
@@ -137,7 +138,7 @@ const CreateReportForm: React.FC = () => {
     if (!isValid) return;
 
     setSubmitting(true);
-    setMessage(null);
+
     try {
       if (!userAuth?.username) {
         throw new Error("Missing username");
@@ -157,10 +158,13 @@ const CreateReportForm: React.FC = () => {
       });
       //#endregion
 
+      setShowSnackbar(true);
       if (response.status === 200 || response.status === 201) {
-        setMessage("Tạo báo cáo thành công!");
+        setType("success");
+        setMessage(response.data.message || "Tạo báo cáo thành công!");
       } else {
-        setMessage("status code: " + response.status);
+        setType("warning");
+        setMessage("Trạng thái: " + response.status);
       }
 
       setFormData({
@@ -174,9 +178,13 @@ const CreateReportForm: React.FC = () => {
       setWaterFile(null);
 
       router.push(`/reports-created`);
+    
     } catch (err) {
       console.error(err);
-      setMessage("Có lỗi xảy ra, vui lòng thử lại.");
+      setShowSnackbar(true);
+      setType("error");
+      setMessage(err instanceof Error ? err.message : "Tạo báo cáo thất bại!");
+    
     } finally {
       setSubmitting(false);
       setShowSnackbar(false);
@@ -204,33 +212,8 @@ const CreateReportForm: React.FC = () => {
       if (closeTimerRef.current) {
         window.clearTimeout(closeTimerRef.current);
       }
-      if (snackbarTimerRef.current) {
-        window.clearTimeout(snackbarTimerRef.current);
-      }
-      if (snackbarHideTimerRef.current) {
-        window.clearTimeout(snackbarHideTimerRef.current);
-      }
     };
   }, []);
-
-  useEffect(() => {
-    if (!message) return;
-
-    setShowSnackbar(true);
-
-    if (snackbarTimerRef.current) window.clearTimeout(snackbarTimerRef.current);
-    if (snackbarHideTimerRef.current)
-      window.clearTimeout(snackbarHideTimerRef.current);
-
-    // Start hide after 5s
-    snackbarTimerRef.current = window.setTimeout(() => {
-      setShowSnackbar(false);
-      // Remove message after transition
-      snackbarHideTimerRef.current = window.setTimeout(() => {
-        setMessage(null);
-      }, 300);
-    }, 5000);
-  }, [message]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -279,7 +262,6 @@ const CreateReportForm: React.FC = () => {
       console.log("User is authenticated but not an admin, redirecting...");
       router.push("/");
     }
-    
   }, [router, userAuth, isAuthLoading]);
 
   const isNotAdmin = userAuth && userAuth.role !== "admin";
@@ -483,18 +465,6 @@ const CreateReportForm: React.FC = () => {
               onMouseLeave={() => setIsDragging(false)}
             />
           </div>
-        </div>
-      )}
-      {message && (
-        <div
-          id="snackbar"
-          className={`fixed bottom-14 left-1/2 -translate-x-1/2 text-3xl font-bold transition-all duration-300 ease-in-out ${
-            showSnackbar
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-3"
-          }`}
-        >
-          {message}
         </div>
       )}
     </main>

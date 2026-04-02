@@ -7,6 +7,7 @@ import Loading from "../loading";
 import { useAuth } from "@/app/context/UserAuth";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { SnackbarType } from "@/app/definations/type";
 
 // Trigger a client-side download of a simple text receipt after account creation
 const downloadAccountReceipt = (data: AccountData) => {
@@ -39,6 +40,10 @@ const CreateAccountForm: React.FC = () => {
   const { userAuth, isAuthLoading } = useAuth();
 
   const [submitting, setSubmitting] = useState(false);
+
+  const [message, setMessage] = useState("");
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [type, setType] = useState<SnackbarType>("info");
 
   const [formData, setFormData] = useState<AccountData>({
     username: "",
@@ -75,10 +80,17 @@ const CreateAccountForm: React.FC = () => {
           role: "user",
         });
 
-        alert(message);
+        setShowSnackbar(true);
+        setType("success");
+        setMessage(message);
       }
+
     } catch (error) {
       console.error("Failed to create account:", error);
+      setShowSnackbar(true);
+      setType("error");
+      setMessage(error instanceof Error ? error.message : "Tạo tài khoản thất bại!");
+
     } finally {
       setSubmitting(false);
     }

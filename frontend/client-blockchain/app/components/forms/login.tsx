@@ -6,6 +6,7 @@ import { Suspense, useEffect, useState } from "react";
 import Loading from "../loading";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { SnackbarType } from "@/app/definations/type";
 
 interface UserFormData {
   username: string;
@@ -18,6 +19,12 @@ export default function LoginForm() {
   const router = useRouter();
 
   const [submitting, setSubmitting] = useState(false);
+
+  // chỉ cần set true, Snackbar sẽ tự động ẩn sau n(s) hoặc khi người dùng click nút đóng
+  const [message, setMessage] = useState("");
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [type, setType] = useState<SnackbarType>("info");
+  
   const [formData, setFormData] = useState<UserFormData>({
     username: "",
     password: "",
@@ -65,10 +72,19 @@ export default function LoginForm() {
         return;
       }
 
+        setShowSnackbar(true);
+        setType("success");
+        setMessage("Đăng nhập thành công!");
+      
       window.location.href = "/";
       localStorage.setItem("auth_token", token);
+
     } catch (error) {
       console.error("Login failed:", error);
+      setShowSnackbar(true);
+      setType("error");
+      setMessage(error instanceof Error ? error.message : "Đăng nhập thất bại!");
+
     } finally {
       setSubmitting(false);
     }
@@ -137,9 +153,6 @@ export default function LoginForm() {
               className="relative mt-4 group flex items-center justify-center overflow-hidden rounded-xl bg-indigo-600 py-3.5 font-bold text-white transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
               disabled={submitting}
             >
-              {/* <span className="relative z-10 uppercase tracking-[0.2em]">
-                Login
-              </span> */}
               {submitting ? (
                 <Loader2 className="animate-spin mr-2" size={20} />
               ) : null}
@@ -152,7 +165,6 @@ export default function LoginForm() {
           </form>
         </section>
 
-        {/* Tailwind Keyframes (Thêm vào file CSS hoặc dùng style tag) */}
         <style jsx>{`
           @keyframes shimmer {
             100% {

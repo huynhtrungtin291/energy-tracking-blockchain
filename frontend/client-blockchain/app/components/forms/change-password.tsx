@@ -6,6 +6,8 @@ import { Suspense, useEffect, useState } from "react";
 import Loading from "../loading";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import SnackbarWithAutoHide from "../snackbar";
+import { SnackbarType } from "@/app/definations/type";
 
 interface Data {
   oldPassword: string;
@@ -22,9 +24,12 @@ export default function ChangePasswordForm() {
     newPassword: "",
   });
 
-  const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  // chỉ cần set true, Snackbar sẽ tự động ẩn sau n(s) hoặc khi người dùng click nút đóng
+  const [message, setMessage] = useState("");
   const [showSnackbar, setShowSnackbar] = useState(false);
+  const [type, setType] = useState<SnackbarType>("info");
+
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -37,8 +42,6 @@ export default function ChangePasswordForm() {
     setSubmitting(true);
     try {
       if (!formData.oldPassword || !formData.newPassword) {
-        setMessage("Vui lòng điền đầy đủ thông tin.");
-        setShowSnackbar(true);
         return;
       }
 
@@ -46,17 +49,19 @@ export default function ChangePasswordForm() {
         formData.oldPassword,
         formData.newPassword,
       );
-      
+
       if (response) {
-        alert(response.message || "Đổi mật khẩu thành công!");
+        setShowSnackbar(true);
+        setType("success");
+        setMessage("Đổi mật khẩu thành công!");
         setFormData({ oldPassword: "", newPassword: "" });
-        // setMessage("Đổi mật khẩu thành công!");
-        // setShowSnackbar(true);
       }
     } catch (error) {
       console.error("Change password failed:", error);
-      setMessage("Đổi mật khẩu thất bại. Vui lòng kiểm tra lại.");
       setShowSnackbar(true);
+      setType("error");
+      setMessage(error instanceof Error ? error.message : "Đổi mật khẩu thất bại!");
+      
     } finally {
       setSubmitting(false);
     }
@@ -137,18 +142,13 @@ export default function ChangePasswordForm() {
           </form>
         </section>
 
-        {/* {message && (
-          <div
-            id="snackbar"
-            className={`fixed bottom-14 left-1/2 -translate-x-1/2 text-3xl font-bold transition-all duration-300 ease-in-out ${
-              showSnackbar
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-3"
-            }`}
-          >
-            {message}
-          </div>
-        )} */}
+        <SnackbarWithAutoHide
+          message={message}
+          showSnackbar={showSnackbar}
+          setShowSnackbar={setShowSnackbar}
+          type={type}
+          duration={3000}
+        />
 
         {/* Tailwind Keyframes (Thêm vào file CSS hoặc dùng style tag) */}
         <style jsx>{`
