@@ -52,11 +52,17 @@ export default function ChangePasswordForm() {
         formData.newPassword,
       );
 
-      if (response) {
+      console.log("Change password response:", response);
+
+      if (response && response.message) {
         setShowSnackbar(true);
-        setType("success");
-        setMessage("Đổi mật khẩu thành công!");
-        setFormData({ oldPassword: "", newPassword: "" });
+        setMessage(response.message);
+        if (response.message.includes("Mật khẩu cũ không đúng")) {
+          setType("error");
+        } else {
+          setType("success");
+          setFormData({ oldPassword: "", newPassword: "" });
+        }
       }
     } catch (error) {
       console.error("Change password failed:", error);

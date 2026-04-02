@@ -1,11 +1,13 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-    // baseURL: "http://192.168.1.122:2004", // ngoc yen 1 lau 2
-    baseURL: "http://10.132.75.44:2004", // oppo trung tin
+    baseURL: "https://ce69-2402-800-6390-ca65-d32-2122-cffa-dc20.ngrok-free.app",
+    // baseURL: "http://192.168.1.122:2004", // trung tin ket noi wifi ngoc yen 1 lau 2
+    // baseURL: "http://10.132.75.44:2004", // oppo trung tin 
     // baseURL: "http://localhost:2004",
     headers: {
         "Content-Type": "application/json",
+        // "ngrok-skip-browser-warning": "69420",
     },
 });
 

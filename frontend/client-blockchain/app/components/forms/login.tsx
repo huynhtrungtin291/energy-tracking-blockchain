@@ -5,7 +5,7 @@ import { useAuth } from "@/app/context/UserAuth";
 import { Suspense, useEffect, useState } from "react";
 import Loading from "../loading";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { EyeOff, Eye, Loader2 } from "lucide-react";
 import { SnackbarType } from "@/app/definations/type";
 import SnackbarWithAutoHide from "../snackbar";
 
@@ -20,6 +20,8 @@ export default function LoginForm() {
   const router = useRouter();
 
   const [submitting, setSubmitting] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
 
   // chỉ cần set true, Snackbar sẽ tự động ẩn sau n(s) hoặc khi người dùng click nút đóng
   const [message, setMessage] = useState("");
@@ -138,13 +140,20 @@ export default function LoginForm() {
             {/* Input Group: Password */}
             <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
                 className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
               <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
             </div>
 
@@ -172,7 +181,7 @@ export default function LoginForm() {
           setShowSnackbar={setShowSnackbar}
           type={type}
         />
-  
+
         <style jsx>{`
           @keyframes shimmer {
             100% {
