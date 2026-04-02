@@ -46,7 +46,7 @@ export default function LoginForm() {
         return;
       }
 
-      // const token = await login(formData.username, formData.password);
+      const token = await login(formData.username, formData.password);
 
       //#region Fake token for testing
       /**
@@ -63,10 +63,10 @@ export default function LoginForm() {
         "exp": 1800000000
       }
        */
-      const token =
-        // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluX2RldiIsIm5hbWUiOiJOZ3V5ZW4gVmFuIEFkbWluIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxODAwMDAwMDAwfQ.signature_not_needed";
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvYW5nX3VzZXIiLCJuYW1lIjoiSG_DoG5nIE5ndXnDqm4iLCJyb2xlIjoidXNlciIsImV4cCI6MTgwMDAwMDAwMH0.signature_not_needed";
-      // #endregion
+      // const token =
+      //   // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluX2RldiIsIm5hbWUiOiJOZ3V5ZW4gVmFuIEFkbWluIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxODAwMDAwMDAwfQ.signature_not_needed";
+      //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvYW5nX3VzZXIiLCJuYW1lIjoiSG_DoG5nIE5ndXnDqm4iLCJyb2xlIjoidXNlciIsImV4cCI6MTgwMDAwMDAwMH0.signature_not_needed";
+      //#endregion
 
       if (!token) {
         setSubmitting(false);
