@@ -210,7 +210,6 @@ export default function ReportTable() {
     // isAuthLoading được khởi tạo là true, userAuth được khởi tạo là null,
     if (!isAuthLoading && !userAuth) {
       console.log("User is not authenticated, redirecting to login...");
-      // alert("Bạn cần đăng nhập để xem báo cáo."); // to test
       router.push("/login");
     }
   }, [router, userAuth, isAuthLoading]);
@@ -260,7 +259,7 @@ export default function ReportTable() {
               <input
                 type="date"
                 value={startDate}
-                max={endDate}
+                max={endDate || new Date().toISOString().split("T")[0]}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-[56px] sm:w-auto rounded-t-lg border-l border-r border-t border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400"
                 placeholder="Từ"

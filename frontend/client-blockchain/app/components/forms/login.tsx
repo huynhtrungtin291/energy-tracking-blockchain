@@ -5,6 +5,7 @@ import { useAuth } from "@/app/context/UserAuth";
 import { Suspense, useEffect, useState } from "react";
 import Loading from "../loading";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 interface UserFormData {
   username: string;
@@ -16,6 +17,7 @@ export default function LoginForm() {
 
   const router = useRouter();
 
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState<UserFormData>({
     username: "",
     password: "",
@@ -29,40 +31,47 @@ export default function LoginForm() {
   };
 
   const handleLogin = async () => {
-    if (!formData.username || !formData.password) {
-      alert("Please fill in all required fields.");
-      return;
-    }
+    try {
+      setSubmitting(true);
+      if (!formData.username || !formData.password) {
+        setSubmitting(false);
+        return;
+      }
 
-    // const token = await login(formData.username, formData.password);
+      const token = await login(formData.username, formData.password);
 
-    //#region Fake token for testing
-    /**
-    {
-      "username": "admin_dev",
-      "name": "Nguyen Van Admin",
-      "role": "admin",
-      "exp": 1800000000 
-    }
-    {
-      "username": "hoang_user",
-      "name": "Hoàng Nguyễn",
-      "role": "user",
-      "exp": 1800000000
-    }
-     */
-    const token =
-      // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluX2RldiIsIm5hbWUiOiJOZ3V5ZW4gVmFuIEFkbWluIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxODAwMDAwMDAwfQ.signature_not_needed";
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvYW5nX3VzZXIiLCJuYW1lIjoiSG_DoG5nIE5ndXnDqm4iLCJyb2xlIjoidXNlciIsImV4cCI6MTgwMDAwMDAwMH0.signature_not_needed";
-    //#endregion
+      //#region Fake token for testing
+      /**
+      {
+        "username": "admin_dev",
+        "name": "Nguyen Van Admin",
+        "role": "admin",
+        "exp": 1800000000 
+      }
+      {
+        "username": "hoang_user",
+        "name": "Hoàng Nguyễn",
+        "role": "user",
+        "exp": 1800000000
+      }
+       */
+      // const token =
+      //   // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluX2RldiIsIm5hbWUiOiJOZ3V5ZW4gVmFuIEFkbWluIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxODAwMDAwMDAwfQ.signature_not_needed";
+      //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvYW5nX3VzZXIiLCJuYW1lIjoiSG_DoG5nIE5ndXnDqm4iLCJyb2xlIjoidXNlciIsImV4cCI6MTgwMDAwMDAwMH0.signature_not_needed";
+      //#endregion
 
-    if (!token) {
-      alert("Login failed. Please check your credentials.");
-      return;
-    }
+      if (!token) {
+        setSubmitting(false);
+        return;
+      }
 
-    window.location.href = "/";
-    localStorage.setItem("auth_token", token);
+      window.location.href = "/";
+      localStorage.setItem("auth_token", token);
+    } catch (error) {
+      console.error("Login failed:", error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -91,7 +100,7 @@ export default function LoginForm() {
         <section className="relative z-10 flex w-full max-w-[30rem] flex-col space-y-10 rounded-2xl bg-white/5 p-10 shadow-2xl backdrop-blur-xl border border-white/10">
           <div className="text-center">
             <h1 className="text-4xl font-extrabold tracking-tight leading-tight   bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-              Login
+              Đăng nhập
             </h1>
           </div>
 
@@ -125,10 +134,17 @@ export default function LoginForm() {
             {/* Submit Button với Glow Effect */}
             <button
               type="submit"
-              className="relative mt-6 group overflow-hidden rounded-lg bg-indigo-600 py-3 font-bold transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.6)] active:scale-95"
+              className="relative mt-4 group flex items-center justify-center overflow-hidden rounded-xl bg-indigo-600 py-3.5 font-bold text-white transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={submitting}
             >
-              <span className="relative z-10 uppercase tracking-[0.2em]">
+              {/* <span className="relative z-10 uppercase tracking-[0.2em]">
                 Login
+              </span> */}
+              {submitting ? (
+                <Loader2 className="animate-spin mr-2" size={20} />
+              ) : null}
+              <span className="relative z-10 uppercase tracking-widest text-sm">
+                {submitting ? "Đang xử lý..." : "Đăng nhập"}
               </span>
               {/* Hiệu ứng tia sáng quét ngang khi hover */}
               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />

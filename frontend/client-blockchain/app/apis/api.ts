@@ -35,12 +35,11 @@ export const createAccount = async (accountData: AccountData): Promise<string> =
     if (!response.data) {
       throw new Error('Invalid response from server');
     }
-
-    return response.data.message || 'Account created successfully!';
+    return response.data.message || 'Tạo tài khoản thành công!';
 
   } catch (error) {
     console.error('Account creation failed:', error);
-    alert('Account creation failed. Please try again.');
+    alert('Tạo tài khoản thất bại. Vui lòng kiểm tra lại!');
     throw new Error('Account creation failed');
   }
 };
@@ -69,22 +68,17 @@ export const getYearlyUsage = async (
   }
 };
 
-export const changePassword = async (username: string, oldPassword: string, newPassword: string): Promise<string> => {
+export const changePassword = async (oldPassword: string, newPassword: string) => {
   try {
-    const response = await axiosClient.post<{ token: string, message?: string }>(
-      '/auth/change-password', { username, oldPassword, newPassword }
+    const response = await axiosClient.post<{ message: string }>(
+      '/users/change-password', { oldPassword, newPassword }
     );
 
     if (!response.data) {
       throw new Error('Invalid response from server');
     }
 
-    if (!response.data.token) {
-      alert(`${response.data.message || 'No token received'}!`);
-      throw new Error('Invalid token received');
-    }
-
-    return response.data.token;
+    return response.data;
 
   } catch (error) {
     console.error('Change password failed:', error);

@@ -179,6 +179,7 @@ const CreateReportForm: React.FC = () => {
       setMessage("Có lỗi xảy ra, vui lòng thử lại.");
     } finally {
       setSubmitting(false);
+      setShowSnackbar(false);
     }
   };
 
@@ -393,11 +394,6 @@ const CreateReportForm: React.FC = () => {
               name="date"
               value={formData.date}
               onChange={handleChange}
-              data-date={
-                formData.date
-                  ? new Date(formData.date).toLocaleDateString("en-GB")
-                  : "dd/mm/yyyy"
-              }
               max={new Date().toISOString().split("T")[0]}
               className="px-2 rounded-sm w-full bg-transparent py-2 text-lg text-white outline-none [color-scheme:dark]"
             />

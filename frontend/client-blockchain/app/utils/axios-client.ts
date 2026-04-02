@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-    baseURL: "http://192.168.1.122:2004", // ngoc yen 1 lau 2
-    // baseURL: "http://10.164.15.44:2004", // oppo trung tin
+    // baseURL: "http://192.168.1.122:2004", // ngoc yen 1 lau 2
+    baseURL: "http://10.132.75.44:2004", // oppo trung tin
     // baseURL: "http://localhost:2004",
     headers: {
         "Content-Type": "application/json",

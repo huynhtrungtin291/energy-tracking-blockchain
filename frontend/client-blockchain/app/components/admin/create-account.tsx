@@ -2,10 +2,11 @@
 
 import { createAccount } from "@/app/apis/api";
 import { AccountData } from "@/app/definations/account";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Loading from "../loading";
 import { useAuth } from "@/app/context/UserAuth";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 // Trigger a client-side download of a simple text receipt after account creation
 const downloadAccountReceipt = (data: AccountData) => {
@@ -37,6 +38,8 @@ const CreateAccountForm: React.FC = () => {
   const router = useRouter();
   const { userAuth, isAuthLoading } = useAuth();
 
+  const [submitting, setSubmitting] = useState(false);
+
   const [formData, setFormData] = useState<AccountData>({
     username: "",
     name: "",
@@ -54,17 +57,15 @@ const CreateAccountForm: React.FC = () => {
 
   const handleCreateAccount = async () => {
     if (!formData.username || !formData.name || !formData.password) {
-      alert("Please fill in all required fields.");
       return;
     }
 
     try {
+      setSubmitting(true);
       const response = await createAccount(formData);
       const message = `Tạo ${formData.username} vai trò ${formData.role} thành công!`;
       const createdAccount = { ...formData };
-
       if (response) {
-        alert(message || response);
         downloadAccountReceipt(createdAccount);
         // Reset form after successful account creation
         setFormData({
@@ -73,12 +74,20 @@ const CreateAccountForm: React.FC = () => {
           password: "",
           role: "user",
         });
+
+        alert(message);
       }
     } catch (error) {
       console.error("Failed to create account:", error);
-      alert("Failed to create account. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  const isValid = useMemo(
+    () => formData.username && formData.name && formData.password,
+    [formData],
+  );
 
   useEffect(() => {
     // Only redirect once auth finished loading; prevents false negatives on first render
@@ -93,7 +102,6 @@ const CreateAccountForm: React.FC = () => {
       console.log("User is authenticated but not an admin, redirecting...");
       router.push("/");
     }
-
   }, [router, userAuth, isAuthLoading]);
 
   const isNotAdmin = userAuth && userAuth.role !== "admin";
@@ -198,11 +206,15 @@ const CreateAccountForm: React.FC = () => {
           {/* Submit Button với Glow Effect */}
           <button
             type="button"
+            disabled={!isValid || submitting}
             onClick={handleCreateAccount}
-            className="relative mt-6 group overflow-hidden rounded-lg bg-indigo-600 py-3 font-bold transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.6)] active:scale-95"
+            className="relative mt-4 group flex items-center justify-center overflow-hidden rounded-xl bg-indigo-600 py-3.5 font-bold text-white transition-all duration-300 hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <span className="relative z-10 uppercase tracking-[0.2em]">
-              Create Account
+            {submitting ? (
+              <Loader2 className="animate-spin mr-2" size={20} />
+            ) : null}
+            <span className="relative z-10 uppercase tracking-widest text-sm">
+              {submitting ? "Đang xử lý..." : "Tạo"}
             </span>
             {/* Hiệu ứng tia sáng quét ngang khi hover */}
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
