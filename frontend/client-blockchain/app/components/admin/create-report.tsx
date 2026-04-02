@@ -8,6 +8,7 @@ import Loading from "../loading";
 import { useRouter } from "next/navigation";
 import axiosClient from "@/app/utils/axios-client";
 import { SnackbarType } from "@/app/definations/type";
+import SnackbarWithAutoHide from "../snackbar";
 
 interface FormView {
   electricAmount: string;
@@ -178,13 +179,11 @@ const CreateReportForm: React.FC = () => {
       setWaterFile(null);
 
       router.push(`/reports-created`);
-    
     } catch (err) {
       console.error(err);
       setShowSnackbar(true);
       setType("error");
       setMessage(err instanceof Error ? err.message : "Tạo báo cáo thất bại!");
-    
     } finally {
       setSubmitting(false);
       setShowSnackbar(false);
@@ -467,6 +466,12 @@ const CreateReportForm: React.FC = () => {
           </div>
         </div>
       )}
+      <SnackbarWithAutoHide
+        message={message}
+        showSnackbar={showSnackbar}
+        setShowSnackbar={setShowSnackbar}
+        type={type}
+      />
     </main>
   );
 };

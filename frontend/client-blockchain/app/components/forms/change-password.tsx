@@ -5,7 +5,7 @@ import { useAuth } from "@/app/context/UserAuth";
 import { Suspense, useEffect, useState } from "react";
 import Loading from "../loading";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import SnackbarWithAutoHide from "../snackbar";
 import { SnackbarType } from "@/app/definations/type";
 
@@ -30,6 +30,8 @@ export default function ChangePasswordForm() {
   const [type, setType] = useState<SnackbarType>("info");
 
   const [submitting, setSubmitting] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -97,13 +99,20 @@ export default function ChangePasswordForm() {
           <form className="flex flex-col space-y-6" onSubmit={handleSubmit}>
             <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
               <input
-                type="text"
+                type={showOldPassword ? "text" : "password"}
                 name="oldPassword"
                 placeholder="Mật khẩu cũ"
                 value={formData.oldPassword}
                 onChange={handleChange}
-                className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
+                className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none pr-10"
               />
+              <button
+                type="button"
+                onClick={() => setShowOldPassword(!showOldPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none"
+              >
+                {showOldPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
               {/* Thanh bar chạy dưới chân khi focus */}
               <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
             </div>
@@ -111,13 +120,20 @@ export default function ChangePasswordForm() {
             {/* Input Group: Password */}
             <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
               <input
-                type="password"
+                type={showNewPassword ? "text" : "password"}
                 name="newPassword"
                 placeholder="Mật khẩu mới"
                 value={formData.newPassword}
                 onChange={handleChange}
-                className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
+                className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none pr-10"
               />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none"
+              >
+                {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
               <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
             </div>
 
@@ -147,7 +163,6 @@ export default function ChangePasswordForm() {
           showSnackbar={showSnackbar}
           setShowSnackbar={setShowSnackbar}
           type={type}
-          duration={3000}
         />
 
         {/* Tailwind Keyframes (Thêm vào file CSS hoặc dùng style tag) */}

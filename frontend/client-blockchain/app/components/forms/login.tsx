@@ -7,6 +7,7 @@ import Loading from "../loading";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { SnackbarType } from "@/app/definations/type";
+import SnackbarWithAutoHide from "../snackbar";
 
 interface UserFormData {
   username: string;
@@ -24,7 +25,7 @@ export default function LoginForm() {
   const [message, setMessage] = useState("");
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [type, setType] = useState<SnackbarType>("info");
-  
+
   const [formData, setFormData] = useState<UserFormData>({
     username: "",
     password: "",
@@ -45,7 +46,7 @@ export default function LoginForm() {
         return;
       }
 
-      const token = await login(formData.username, formData.password);
+      // const token = await login(formData.username, formData.password);
 
       //#region Fake token for testing
       /**
@@ -62,29 +63,29 @@ export default function LoginForm() {
         "exp": 1800000000
       }
        */
-      // const token =
-      //   // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluX2RldiIsIm5hbWUiOiJOZ3V5ZW4gVmFuIEFkbWluIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxODAwMDAwMDAwfQ.signature_not_needed";
-      //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvYW5nX3VzZXIiLCJuYW1lIjoiSG_DoG5nIE5ndXnDqm4iLCJyb2xlIjoidXNlciIsImV4cCI6MTgwMDAwMDAwMH0.signature_not_needed";
-      //#endregion
+      const token =
+        // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluX2RldiIsIm5hbWUiOiJOZ3V5ZW4gVmFuIEFkbWluIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxODAwMDAwMDAwfQ.signature_not_needed";
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvYW5nX3VzZXIiLCJuYW1lIjoiSG_DoG5nIE5ndXnDqm4iLCJyb2xlIjoidXNlciIsImV4cCI6MTgwMDAwMDAwMH0.signature_not_needed";
+      // #endregion
 
       if (!token) {
         setSubmitting(false);
         return;
       }
 
-        setShowSnackbar(true);
-        setType("success");
-        setMessage("Đăng nhập thành công!");
-      
+      setShowSnackbar(true);
+      setType("success");
+      setMessage("Đăng nhập thành công!");
+
       window.location.href = "/";
       localStorage.setItem("auth_token", token);
-
     } catch (error) {
       console.error("Login failed:", error);
       setShowSnackbar(true);
       setType("error");
-      setMessage(error instanceof Error ? error.message : "Đăng nhập thất bại!");
-
+      setMessage(
+        error instanceof Error ? error.message : "Đăng nhập thất bại!",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -165,6 +166,13 @@ export default function LoginForm() {
           </form>
         </section>
 
+        <SnackbarWithAutoHide
+          message={message}
+          showSnackbar={showSnackbar}
+          setShowSnackbar={setShowSnackbar}
+          type={type}
+        />
+  
         <style jsx>{`
           @keyframes shimmer {
             100% {

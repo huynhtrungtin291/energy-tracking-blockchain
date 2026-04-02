@@ -6,8 +6,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import Loading from "../loading";
 import { useAuth } from "@/app/context/UserAuth";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { EyeOff, Loader2, Eye } from "lucide-react";
 import { SnackbarType } from "@/app/definations/type";
+import SnackbarWithAutoHide from "../snackbar";
 
 // Trigger a client-side download of a simple text receipt after account creation
 const downloadAccountReceipt = (data: AccountData) => {
@@ -40,6 +41,8 @@ const CreateAccountForm: React.FC = () => {
   const { userAuth, isAuthLoading } = useAuth();
 
   const [submitting, setSubmitting] = useState(false);
+
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [message, setMessage] = useState("");
   const [showSnackbar, setShowSnackbar] = useState(false);
@@ -84,13 +87,13 @@ const CreateAccountForm: React.FC = () => {
         setType("success");
         setMessage(message);
       }
-
     } catch (error) {
       console.error("Failed to create account:", error);
       setShowSnackbar(true);
       setType("error");
-      setMessage(error instanceof Error ? error.message : "Tạo tài khoản thất bại!");
-
+      setMessage(
+        error instanceof Error ? error.message : "Tạo tài khoản thất bại!",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -161,13 +164,20 @@ const CreateAccountForm: React.FC = () => {
 
           <div className="group relative w-full border-b-2 border-gray-700 bg-transparent text-lg transition-all duration-500 focus-within:border-indigo-500">
             <input
-              type="password"
+              type={showNewPassword ? "text" : "password"}
               name="password"
               placeholder="Password"
               value={formData.password}
               onChange={handleChange}
               className="peer w-full border-none bg-transparent py-2 outline-none placeholder:text-gray-600 focus:outline-none"
             />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none"
+            >
+              {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
             <span className="absolute bottom-[-2px] left-0 h-[2px] w-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 group-focus-within:w-full" />
           </div>
 
@@ -233,6 +243,13 @@ const CreateAccountForm: React.FC = () => {
           </button>
         </div>
       </section>
+
+      <SnackbarWithAutoHide
+        message={message}
+        showSnackbar={showSnackbar}
+        setShowSnackbar={setShowSnackbar}
+        type={type}
+      />
 
       {/* Tailwind Keyframes (Thêm vào file CSS hoặc dùng style tag) */}
       <style jsx>{`
