@@ -1,15 +1,15 @@
-import { Controller, Post, Body, UseInterceptors, UploadedFiles, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, UseInterceptors, UploadedFiles, BadRequestException, UseGuards } from '@nestjs/common';
 import { ResourceUsageService } from './resource_usage.service';
 import { CreateResourceUsageDto } from './dto/create-resource_usage.dto';
-import { Roles } from 'src/auth/decorators/role.decorator';
 import { MonthYearRangeAndUserQueryDto } from './dto/reponse-resource_usage.dto';
 import { ImageUploadInterceptor } from 'src/interceptors/file-upload.utils';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 @Controller('resource-usage')
 export class ResourceUsageController {
   constructor(private readonly resourceUsageService: ResourceUsageService) {}
 
   @UseInterceptors(ImageUploadInterceptor)
-  @Roles()
+  @UseGuards(RolesGuard)
   @Post()
   create(@UploadedFiles() files: { electric?: Express.Multer.File[]; water?: Express.Multer.File[] }, @Body() createResourceUsageDto: CreateResourceUsageDto) {
     const electricFile = files.electric?.[0];
@@ -22,7 +22,6 @@ export class ResourceUsageController {
     return this.resourceUsageService.create(createResourceUsageDto, electricFile, waterFile);
   }
 
-  @Roles()
   @Post('yearly-usage')
   getYearlyUsage(@Body() dataTime?: MonthYearRangeAndUserQueryDto) {
     return this.resourceUsageService.getYearlyUsage(dataTime || {});

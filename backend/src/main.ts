@@ -27,20 +27,20 @@ async function bootstrap() {
   const ip = getLocalIP();
 
   app.enableCors({
-    origin: true,
+    origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true,
+    allowedHeaders: 'Content-Type, Accept, Authorization, ngrok-skip-browser-warning',
+    credentials: false,
+    optionsSuccessStatus: 204,
   });
-
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
     }),
   );
 
-  const port = configService.get<number>('PORT') || 4002;
-
-  await app.listen(port);
+  const port = Number(configService.get<number>('PORT') ?? 4002);
+  await app.listen(port, '0.0.0.0');
 
   console.log(`Local:   http://localhost:${port}`);
   console.log(`Network: http://${ip}:${port}`);

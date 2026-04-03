@@ -88,6 +88,14 @@ export class ResourceUsageService {
       username?: string;
     } = {};
 
+    if (from && to && username) {
+      query.date = {
+        $gte: new Date(from),
+        $lte: new Date(to),
+      };
+      query.username = username;
+    }
+
     if (from && to) {
       query.date = {
         $gte: new Date(from),
@@ -97,6 +105,33 @@ export class ResourceUsageService {
 
     if (username) {
       query.username = username;
+    }
+
+    if (!from && !to && !username) {
+      const dataResponse = await this.ResourceUsageDocument.find().sort({ date: -1 }).exec();
+      return await Promise.all(
+        dataResponse.map(async (item) => {
+          const name = await this.usersService.findNameByUsername(item.username);
+          return {
+            username: item.username,
+            name,
+            electric: item.electric,
+            water: item.water,
+            carbon: item.carbon,
+            date: item.date,
+            dataToHash: JSON.stringify({
+              username: item.username,
+              name,
+              electric: item.electric,
+              water: item.water,
+              carbon: item.carbon,
+              date: item.date,
+            }),
+            dataHash: item.dataHash,
+            address_transaction: item.address_transaction,
+          };
+        }),
+      );
     }
 
     const dataResponse = await this.ResourceUsageDocument.find(query).sort({ date: -1 }).exec();

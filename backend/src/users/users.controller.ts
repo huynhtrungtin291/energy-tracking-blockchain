@@ -6,6 +6,7 @@ import { Req } from '@nestjs/common';
 import { ChangePasswordDto } from './dto/update-user.dto';
 import { requestUser } from './decorators/user.decorator';
 // import { Public } from 'src/auth/decorators/public.decorator';
+// import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('users')
 export class UsersController {
