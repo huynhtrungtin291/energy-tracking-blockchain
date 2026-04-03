@@ -27,7 +27,6 @@ The information below shows team ownership by module.
 
 - mtrideveloper (unitydev2d@gmail.com)
 - dntvip (dntienktpm2211046@student.ctuet.edu.vn)
-- dntvip (emailcuaban@example.com)
 
 ### Hardhat (hardhat/)
 
