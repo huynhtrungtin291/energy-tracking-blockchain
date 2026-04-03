@@ -225,7 +225,7 @@ export default function ReportTable() {
         <section className="relative z-10 flex w-full flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl">
           {/* Table Header Section */}
           {/* Đã thêm flex-col, md:flex-row, items-start, md:items-center */}
-          <div className="flex flex-col p-0 sm:flex-row sm:justify-between sm:items-center items-start gap-4 border-b border-white/10 p-6">
+          <div className="flex flex-col p-0 lg:flex-row lg:justify-between lg:items-center items-start gap-4 border-b border-white/10 p-6">
             <div>
               <div className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-lg sm:text-2xl font-bold text-transparent">
                 Báo cáo năng lượng tiêu thụ

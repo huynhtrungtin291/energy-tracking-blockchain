@@ -10,6 +10,7 @@ import {
   ReceiptText,
   LogOut,
   RotateCcwKey,
+  CircleUser,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/UserAuth";
@@ -22,11 +23,18 @@ const actions: {
   onlyAdmin: boolean;
 }[] = [
   {
-    id: "create-report",
-    icon: <Pencil size={20} />,
-    to: "create-report",
-    label: "Tạo 1 báo cáo",
+    id: "reports-created",
+    icon: <CircleUser size={20} />,
+    to: "reports-created",
+    label: "Báo cáo đã tạo của tôi",
     onlyAdmin: true,
+  },
+  {
+    id: "report-list",
+    icon: <ReceiptText size={20} />,
+    to: "/",
+    label: "Danh sách báo cáo",
+    onlyAdmin: false,
   },
   {
     id: "create-account",
@@ -36,11 +44,11 @@ const actions: {
     onlyAdmin: true,
   },
   {
-    id: "report-list",
-    icon: <ReceiptText size={20} />,
-    to: "/",
-    label: "Danh sách báo cáo",
-    onlyAdmin: false,
+    id: "create-report",
+    icon: <Pencil size={20} />,
+    to: "create-report",
+    label: "Tạo 1 báo cáo",
+    onlyAdmin: true,
   },
   {
     id: "change-password",
@@ -65,10 +73,24 @@ export default function NavMoveableBtn() {
   const [isOpen, setIsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [quadrant, setQuadrant] = useState({ x: "left", y: "bottom" });
+  const [position, setPosition] = useState(() => {
+    if (typeof window !== "undefined") {
+      const btnWidth = 56;
+      const btnHeight = 56;
+      const padding = 20;
+      return {
+        x: window.innerWidth / 2 - btnWidth / 2,
+        y: btnHeight - padding,
+      };
+    }
+    return { x: 0, y: 0 };
+  });
 
   const nodeRef = useRef<HTMLDivElement | null>(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
 
+  // usecallback để tránh tạo lại hàm khi re-render, 
+  // cũng giúp đảm bảo các event listener luôn có reference đến hàm mới nhất
   const updateQuadrant = useCallback(() => {
     if (!nodeRef.current) return;
 
@@ -80,6 +102,9 @@ export default function NavMoveableBtn() {
       x: centerX < window.innerWidth / 2 ? "left" : "right",
       y: centerY < window.innerHeight / 2 ? "top" : "bottom",
     });
+
+    console.log("Updated quadrant called");
+    
   }, []);
 
   const handleStart = (e: DraggableEvent, data: DraggableData) => {
@@ -87,12 +112,14 @@ export default function NavMoveableBtn() {
     setIsDragging(false);
   };
 
-  const handleDrag = () => {
+  const handleDrag = (e: DraggableEvent, data: DraggableData) => {
+    setPosition({ x: data.x, y: data.y });
     setIsDragging(true);
     if (isOpen) setIsOpen(false);
   };
 
   const handleStop = (e: DraggableEvent, data: DraggableData) => {
+    setPosition({ x: data.x, y: data.y });
     setTimeout(() => {
       updateQuadrant();
     }, 10);
@@ -109,23 +136,33 @@ export default function NavMoveableBtn() {
     }, 50);
   };
 
-  const getDefaultCoords = () => {
-    const btnWidth = 56; // w-14 = 56px
-    const btnHeight = 56;
-    const padding = 20;
-    const coords = {
-      x: window.innerWidth / 2 - btnWidth / 2,
-      y: btnHeight - padding,
-    };
-    return coords;
-  };
+  const updatePositionOnResize = useCallback(() => {
+    setPosition((prev) => {
+      let { x, y } = prev;
+      const btnWidth = nodeRef.current?.offsetWidth || 56;
+      const btnHeight = nodeRef.current?.offsetHeight || 56;
+      const maxX = window.innerWidth - btnWidth;
+      const maxY = window.innerHeight - btnHeight;
+
+      if (x < 0) x = 0;
+      if (y < 0) y = 0;
+      if (x > maxX) x = maxX;
+      if (y > maxY) y = maxY;
+
+      return { x, y };
+    });
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     updateQuadrant();
     window.addEventListener("resize", updateQuadrant);
-    return () => window.removeEventListener("resize", updateQuadrant);
-  }, [updateQuadrant]);
+    window.addEventListener("resize", updatePositionOnResize);
+    return () => {
+      window.removeEventListener("resize", updateQuadrant);
+      window.removeEventListener("resize", updatePositionOnResize);
+    };
+  }, [updateQuadrant, updatePositionOnResize]);
 
   if (!userAuth) return null;
 
@@ -137,7 +174,7 @@ export default function NavMoveableBtn() {
       onStop={handleStop}
       handle=".drag-handle"
       cancel=".action-item"
-      defaultPosition={getDefaultCoords()}
+      position={position}
       bounds="parent" // Giữ nút luôn nằm trong màn hình
     >
       {/* Container chính đổi thành relative để làm gốc tọa độ cho menu absolute */}

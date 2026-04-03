@@ -131,7 +131,7 @@ const CreateAccountForm: React.FC = () => {
       <section className="relative z-10 flex w-full max-w-[30rem] flex-col space-y-10 rounded-2xl bg-white/5 p-10 shadow-2xl backdrop-blur-xl border border-white/10">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-            Create Account
+            Tạo tài khoản
           </h1>
         </div>
 

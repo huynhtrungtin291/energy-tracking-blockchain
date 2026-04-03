@@ -17,10 +17,17 @@ export default function Loading() {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 100px;
-          height: 100px;
+          width: 60px;
+          height: 60px;
           margin: 130px 0;
           perspective: 780px;
+        }
+
+        @media (min-width: 768px) {
+          .loader {
+            width: 100px;
+            height: 100px;
+          }
         }
 
         .text {
@@ -41,22 +48,34 @@ export default function Loading() {
         .load-inner.load-one {
           left: 0%;
           top: 0%;
-          border-bottom: 6px solid #5c5edc;
+          border-bottom: 4px solid #5c5edc;
           animation: rotate1 1.15s linear infinite;
         }
 
         .load-inner.load-two {
           right: 0%;
           top: 0%;
-          border-right: 6px solid #9147ff;
+          border-right: 4px solid #9147ff;
           animation: rotate2 1.15s 0.1s linear infinite;
         }
 
         .load-inner.load-three {
           right: 0%;
           bottom: 0%;
-          border-top: 6px solid #3b82f6;
+          border-top: 4px solid #3b82f6;
           animation: rotate3 1.15s 0.15s linear infinite;
+        }
+
+        @media (min-width: 768px) {
+          .load-inner.load-one {
+            border-bottom-width: 6px;
+          }
+          .load-inner.load-two {
+            border-right-width: 6px;
+          }
+          .load-inner.load-three {
+            border-top-width: 6px;
+          }
         }
 
         @keyframes rotate1 {
