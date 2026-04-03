@@ -32,7 +32,6 @@ The information below shows team ownership by module.
 ### Hardhat (hardhat/)
 
 - dntvip (dntienktpm2211046@student.ctuet.edu.vn)
-- dntvip (emailcuaban@example.com)
 
 ## Web Features (Frontend)
 
