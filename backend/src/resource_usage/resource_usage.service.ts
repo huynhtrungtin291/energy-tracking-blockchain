@@ -109,6 +109,9 @@ export class ResourceUsageService {
 
     if (!from && !to && !username) {
       const dataResponse = await this.ResourceUsageDocument.find().sort({ date: -1 }).exec();
+      if (!dataResponse.length) {
+        return [];
+      }
       return await Promise.all(
         dataResponse.map(async (item) => {
           const name = await this.usersService.findNameByUsername(item.username);
