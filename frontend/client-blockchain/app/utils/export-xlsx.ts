@@ -7,7 +7,10 @@ import { ResponseResourceUsageDto } from "../definations/report-details";
  */
 const loadImageAsBuffer = async (url: string): Promise<ArrayBuffer | null> => {
   try {
-    const response = await fetch(url);
+    // Mã hóa URL gốc để tránh lỗi ký tự đặc biệt (như &, ?, =)
+    // app/api/image-proxy/route.ts
+    const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.arrayBuffer();
   } catch (error) {
@@ -16,10 +19,15 @@ const loadImageAsBuffer = async (url: string): Promise<ArrayBuffer | null> => {
   }
 };
 
-export const exportToExcel = async (
-  reports: ResponseResourceUsageDto[],
-  fileName: string,
-) => {
+export const exportToExcel = async ({
+  reports,
+  fileName,
+  setIsDownloading,
+}: {
+  reports: ResponseResourceUsageDto[];
+  fileName: string;
+  setIsDownloading: (isDownloading: boolean) => void;
+}) => {
   const workbook = new ExcelJS.Workbook();
 
   // --- SHEET 1: REPORTS ---
@@ -120,6 +128,9 @@ export const exportToExcel = async (
     rows: tableRows,
   });
 
+  let downloadingImageIndex = 0;
+  setIsDownloading(true);
+
   // 5. XỬ LÝ CHÈN ẢNH VÀO TỪNG DÒNG
   for (let i = 0; i < reports.length; i++) {
     const report = reports[i];
@@ -139,6 +150,8 @@ export const exportToExcel = async (
     // Chèn ảnh hóa đơn điện (Cột D - index 3)
     if (report.electric.invoice_electric) {
       const imgBuf = await loadImageAsBuffer(report.electric.invoice_electric);
+
+      console.log("imgBuf for electric invoice:", imgBuf);
       if (imgBuf) {
         const imgId = workbook.addImage({
           buffer: imgBuf,
@@ -155,6 +168,7 @@ export const exportToExcel = async (
     // Chèn ảnh hóa đơn nước (Cột F - index 5)
     if (report.water.invoice_water) {
       const imgBuf = await loadImageAsBuffer(report.water.invoice_water);
+      console.log("imgBuf for water invoice:", imgBuf);
       if (imgBuf) {
         const imgId = workbook.addImage({
           buffer: imgBuf,
@@ -167,6 +181,12 @@ export const exportToExcel = async (
         });
       }
     }
+
+    downloadingImageIndex++;
+  }
+
+  if (downloadingImageIndex === reports.length) {
+    setIsDownloading(false);
   }
 
   // 6. ĐỊNH DẠNG CỘT (WIDTH)
