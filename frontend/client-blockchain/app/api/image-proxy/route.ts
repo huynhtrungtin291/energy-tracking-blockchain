@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  // ?url=...
   const imageUrl = request.nextUrl.searchParams.get("url");
 
   if (!imageUrl) {
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     // 5. Gửi request đến server chứa ảnh gốc (Upstream)
     // cache: "no-store" đảm bảo Next.js không lưu cache kết quả fetch này ở tầng server
     const upstream = await fetch(parsedUrl.toString(), {
-    //   cache: "no-store",
+      //   cache: "no-store",
     });
     // 6. Nếu server gốc trả về lỗi (404, 500...), forward lỗi đó về cho client
     if (!upstream.ok) {

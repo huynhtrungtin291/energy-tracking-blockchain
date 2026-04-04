@@ -182,7 +182,7 @@ export default function ReportsCreated() {
           <div className="flex flex-col p-0 lg:flex-row lg:justify-between lg:items-center items-start gap-4 border-b border-white/10 p-6">
             <div>
               <div className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-lg sm:text-2xl font-bold text-transparent">
-                Báo cáo năng lượng tiêu thụ
+                Báo cáo năng lượng tiêu thụ của {userAuth.name}
               </div>
               {fetchError && (
                 <p className="text-sm text-red-300 mt-2">{fetchError}</p>
