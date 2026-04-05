@@ -145,7 +145,6 @@ export default function ReportsCreated() {
 
         console.log("Fetched reports:", apiData);
         setReports(apiData);
-        
       } catch (error) {
         console.error("Failed to fetch reports", error);
         setFetchError("Không thể tải báo cáo. Vui lòng thử lại.");
@@ -183,7 +182,7 @@ export default function ReportsCreated() {
           <div className="flex flex-col p-0 lg:flex-row lg:justify-between lg:items-center items-start gap-4 border-b border-white/10 p-6">
             <div>
               <div className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-lg sm:text-2xl font-bold text-transparent">
-                Báo cáo năng lượng tiêu thụ
+                Báo cáo năng lượng tiêu thụ của {userAuth.name}
               </div>
               {fetchError && (
                 <p className="text-sm text-red-300 mt-2">{fetchError}</p>
@@ -297,7 +296,7 @@ export default function ReportsCreated() {
 
                       {/* Blockchain Info */}
                       <td className="px-6 py-4 align-top">
-                        <div className="flex flex-col space-y-1 max-w-[200px]">
+                        <div className="flex flex-col space-y-1 max-w-[311px]">
                           <div className="flex items-center space-x-1 text-[10px]">
                             <span className="text-slate-500">HASH:</span>
                             <span className="text-indigo-400 truncate font-mono">
@@ -307,7 +306,9 @@ export default function ReportsCreated() {
                           <div className="flex items-center space-x-1 text-[10px]">
                             <span className="text-slate-500">TX:</span>
                             <a
-                              href="#"
+                              href={`https://coston2-explorer.flare.network/tx/${report.address_transaction}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="text-purple-400 hover:underline truncate font-mono"
                             >
                               {report.address_transaction}

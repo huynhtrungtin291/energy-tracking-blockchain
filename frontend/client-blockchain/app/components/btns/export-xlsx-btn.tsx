@@ -1,15 +1,19 @@
 import { exportToExcel } from "@/app/utils/export-xlsx";
 import { ResponseResourceUsageDto } from "../../definations/report-details";
+import { useState } from "react";
 
 export default function ExportXLSXButton({
   reports,
 }: {
   reports: ResponseResourceUsageDto[];
 }) {
+  const [isDownloading, setIsDownloading] = useState(false);
+
   return (
     <button
-      onClick={() => exportToExcel(reports, "Environmental_Report")} // temp name
-      className="relative group flex items-center space-x-0 md:space-x-2 overflow-hidden rounded-lg bg-emerald-600 p-2.5 md:px-6 md:py-2.5 font-bold transition-all duration-300 hover:bg-emerald-500 hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] active:scale-95"
+      onClick={() => exportToExcel({ reports, fileName: "Environmental_Report", setIsDownloading })} // temp name
+      className={`relative group flex items-center space-x-0 md:space-x-2 overflow-hidden rounded-lg bg-emerald-600 p-2.5 md:px-6 md:py-2.5 font-bold transition-all duration-300 ${isDownloading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-500 hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] active:scale-95'}`}
+      disabled={isDownloading}
     >
       <svg
         className="h-5 w-5"
@@ -25,11 +29,13 @@ export default function ExportXLSXButton({
         />
       </svg>
       <span className="hidden md:inline text-sm uppercase tracking-wider">
-        Xuất file xlsx
+        {isDownloading ? "Đang tạo file..." : `Xuất file xlsx`}
       </span>
 
       {/* Hiệu ứng tia sáng quét ngang tương tự nút Create Account */}
-      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
+      {isDownloading && (
+        <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
+      )}
     </button>
     // <div className="fixed bottom-10 left-10 z-50">
     // <button...>...</button>

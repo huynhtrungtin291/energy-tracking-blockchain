@@ -176,6 +176,8 @@ export default function ReportTable() {
 
       const payload: MonthYearRangeQueryDto = {};
 
+      console.log("userSelected:", userSelected);
+
       if (fromValue) payload.from = new Date(`${fromValue}T00:00:00.000Z`);
       if (toValue) payload.to = new Date(`${toValue}T00:00:00.000Z`);
       if (userSelected && userSelected !== "All") payload.username = userSelected;
@@ -190,7 +192,7 @@ export default function ReportTable() {
 
         const usernames = apiData.map((item) => item.username).filter(Boolean);
         setUsernameOptions((prev) =>
-          Array.from(new Set([...prev, ...usernames, ..."All"])).filter(Boolean),
+          Array.from(new Set([...prev, ...usernames, "All"])).filter(Boolean),
         );
         
       } catch (error) {
