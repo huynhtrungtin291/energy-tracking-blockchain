@@ -24,7 +24,7 @@ export default function ReportTable() {
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [userSelected, setUserSelected] = useState<string>("");
+  const [userSelected, setUserSelected] = useState<string | null | "All">("All");
 
   const [page, setPage] = useState(1);
 
@@ -178,7 +178,7 @@ export default function ReportTable() {
 
       if (fromValue) payload.from = new Date(`${fromValue}T00:00:00.000Z`);
       if (toValue) payload.to = new Date(`${toValue}T00:00:00.000Z`);
-      if (userSelected) payload.username = userSelected;
+      if (userSelected && userSelected !== "All") payload.username = userSelected;
 
       console.log("filter payload:", payload);
 
@@ -190,7 +190,7 @@ export default function ReportTable() {
 
         const usernames = apiData.map((item) => item.username).filter(Boolean);
         setUsernameOptions((prev) =>
-          Array.from(new Set([...prev, ...usernames])),
+          Array.from(new Set([...prev, ...usernames, ..."All"])).filter(Boolean),
         );
         
       } catch (error) {
@@ -237,12 +237,12 @@ export default function ReportTable() {
 
             <div className="flex items-center gap-3">
               <select
-                value={userSelected}
+                value={userSelected || "All"}
                 onChange={(e) => setUserSelected(e.target.value)}
                 className="w-[80px] sm:w-auto rounded-t-lg border-l border-r border-t border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400 appearance-none cursor-pointer"
               >
-                <option value="" disabled hidden>
-                  Username
+                <option value="All" disabled hidden>
+                  All
                 </option>
                 {usernameOptions.map((username) => (
                   <option
